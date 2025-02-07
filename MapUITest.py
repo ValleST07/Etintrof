@@ -1,5 +1,5 @@
 import pygame
-Map=[[0, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -49,22 +49,56 @@ Map=[[0, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
 [0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0],
 [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+
+FLOOR = (237, 157, 108)
+WALL = (133,64,33)
+WATER = (29,152,221)
+MAP_COLORS=[FLOOR, WALL, WATER]
+
+RED=(255,0,0)
+GREEN=(0,255,0)
+YELLOW=(255,255,0)
+BLACK = (0,0,0)
+PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
+
+#                   RED     GREEN    YELLOW   BLACK
+PLAYER_POSITIONS=[[10,10],[100,50],[50,100],[200,200]]
+
+WINDOW_HEIGHT = 800
+WINDOW_WIDTH = 800
+
+def drawGrid():
+    blocksizeX=int(WINDOW_WIDTH/50)
+    blocksizeY=int(WINDOW_HEIGHT/50)
+    for x in range(0, WINDOW_WIDTH, blocksizeX):
+        for y in range(0, WINDOW_HEIGHT, blocksizeY):
+            rect = pygame.Rect(x, y, blocksizeX, blocksizeY)
+            i=Map[int(y/blocksizeY)][int(x/blocksizeX)]
+            pygame.draw.rect(SURFACE, MAP_COLORS[i], rect)
+
+def drawPlayer():
+    for i in range(4):
+        pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i], 40)
+
 pygame.init()
 
-pygame.display.set_caption('Quick Start')
-window_surface = pygame.display.set_mode((800, 600))
+pygame.display.set_caption('Etintrof')
+SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was man sieht; teil der Map; mit zoom
+SURFACE = pygame.Surface((WINDOW_HEIGHT, WINDOW_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
-background = pygame.Surface((800, 600))
-background.fill(pygame.Color('#000000'))
+
 
 is_running = True
 
 while is_running:
-
+    drawGrid()
+    drawPlayer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
 
-    window_surface.blit(background, (0, 0))
+    pygame.display.update()
 
     pygame.display.update()
+
