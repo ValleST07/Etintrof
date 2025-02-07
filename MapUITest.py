@@ -50,6 +50,7 @@ Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 [0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0],
 [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
+PLAYER = 0 # 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
 
 FLOOR = (237, 157, 108)
 WALL = (133,64,33)
@@ -67,12 +68,16 @@ PLAYER_POSITIONS=[[10,10],[100,50],[50,100],[200,200]]
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
+ZOOM_FACTOR=5
+
+MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
+MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
 
 def drawGrid():
-    blocksizeX=int(WINDOW_WIDTH/50)
-    blocksizeY=int(WINDOW_HEIGHT/50)
-    for x in range(0, WINDOW_WIDTH, blocksizeX):
-        for y in range(0, WINDOW_HEIGHT, blocksizeY):
+    blocksizeX=int(MAP_WIDTH/50)
+    blocksizeY=int(MAP_HEIGHT/50)
+    for x in range(0, MAP_WIDTH, blocksizeX):
+        for y in range(0, MAP_HEIGHT, blocksizeY):
             rect = pygame.Rect(x, y, blocksizeX, blocksizeY)
             i=Map[int(y/blocksizeY)][int(x/blocksizeX)]
             pygame.draw.rect(SURFACE, MAP_COLORS[i], rect)
@@ -80,6 +85,12 @@ def drawGrid():
 def drawPlayer():
     for i in range(4):
         pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i], 40)
+
+def CamView():
+    cam_x = max(0, min(PLAYER_POSITIONS[PLAYER][0] - WINDOW_WIDTH // 2, MAP_WIDTH - WINDOW_WIDTH))
+    cam_y = max(0, min(PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT // 2, MAP_HEIGHT - WINDOW_HEIGHT))
+    camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
+    SCREEN.blit(SURFACE, (0, 0), camera_view)
 
 pygame.init()
 
@@ -94,11 +105,10 @@ is_running = True
 while is_running:
     drawGrid()
     drawPlayer()
+    CamView()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
-
-    pygame.display.update()
 
     pygame.display.update()
 
