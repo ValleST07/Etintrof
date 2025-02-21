@@ -10,29 +10,30 @@ def senden(addr):
 
             s=socket.socket()
             s.connect((addr[0],4444))
-            x="10909.90809809.1980, Fertig"
 
             #data = json.dumps(x).encode() 
             data= bytes(f"{use}","utf-8")
             s.sendall(data)
-            #data = s.recv(1024)
-
-            #print("Received "+str(data,"utf-8"))
             s.close()
             break
         
         
 
-HOST = "192.168.0.100"  # Standard loopback interface address (localhost)
-PORT = 4444  # Port to listen on (non-privileged ports are > 1023)
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+local_addr = (local_ip,4444)
+player_addr = [0]
 
-
-#empfangenhhhhhhhhh
+#empfangen
 while True:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+        s.bind(local_addr)
         s.listen()
         conn, addr = s.accept()
+        if addr not in player_addr:
+            player_addr[0]+=1
+            player_addr.append(addr,player_addr[0])
+
         with conn:
             print(f"Connected by {addr}")
             while True:
