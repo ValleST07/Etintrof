@@ -67,7 +67,8 @@ BLACK = (0,0,0)
 PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
 
 #                   RED     GREEN    YELLOW   BLACK
-PLAYER_POSITIONS=[[50,0],[100,50],[50,100],[200,200]]
+PLAYER_POSITIONS=[[500,100],[100,50],[50,100],[200,200]]
+#in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
 WINDOW_HEIGHT = 800
@@ -92,7 +93,7 @@ def drawPlayer():
     height=10
     for i in range(4):
         pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i],blocksizeX/2-5)
-        angle_rad = math.radians(PLAYER_ANGLES[i])
+        angle_rad = PLAYER_ANGLES[i]
         x=PLAYER_POSITIONS[i][0]
         y=PLAYER_POSITIONS[i][1]
         # Define rectangle corners relative to (x, y)
@@ -132,6 +133,11 @@ def CamView():
     SCREEN.fill((0, 0, 0))
     SCREEN.blit(SURFACE, (0, 0), camera_view)
 
+def GetAngleMousePlayer():
+    MousePos=pygame.mouse.get_pos()
+    delta=[MousePos[0]-PLAYER_POSITIONS[PLAYER][0],MousePos[1]-PLAYER_POSITIONS[PLAYER][1]]
+    return math.atan2(delta[1],delta[0])
+
 pygame.init()
 
 pygame.display.set_caption('Etintrof')
@@ -144,11 +150,7 @@ while is_running:
     drawGrid()
     drawPlayer()
     CamView()
-    PLAYER_ANGLES[0]+=1
-    PLAYER_ANGLES[1]-=1
-
-    PLAYER_POSITIONS[0][1]+=10
-    delay(20)
+    PLAYER_ANGLES[PLAYER]=GetAngleMousePlayer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
