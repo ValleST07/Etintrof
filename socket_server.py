@@ -3,15 +3,14 @@ import json
 import socket
 
 def senden(addr):
+    print(addr)
     while True:
         use = input ("What to you want to send->")
         if use:
-            #Use IP address of Socket server and non-privileged port >1023
 
             s=socket.socket()
             s.connect((addr[0],4444))
-
-            #data = json.dumps(x).encode() 
+            
             data= bytes(f"{use}","utf-8")
             s.sendall(data)
             s.close()
@@ -32,7 +31,8 @@ while True:
         conn, addr = s.accept()
         if addr not in player_addr:
             player_addr[0]+=1
-            player_addr.append(addr,player_addr[0])
+            player_addr.append(player_addr[0])
+            player_addr.append(addr)
 
         with conn:
             print(f"Connected by {addr}")
