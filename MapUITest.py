@@ -1,5 +1,6 @@
 import pygame
 from pygame.time import delay
+import math
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
@@ -66,7 +67,8 @@ BLACK = (0,0,0)
 PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
 
 #                   RED     GREEN    YELLOW   BLACK
-PLAYER_POSITIONS=[[10,10],[100,50],[50,100],[200,200]]
+PLAYER_POSITIONS=[[50,0],[100,50],[50,100],[200,200]]
+PLAYER_ANGLES=[0,0,0,0]
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
@@ -75,9 +77,10 @@ ZOOM_FACTOR=3
 MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
 MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
 
+blocksizeX=int(MAP_WIDTH/50)
+blocksizeY=int(MAP_HEIGHT/50)
+
 def drawGrid():
-    blocksizeX=int(MAP_WIDTH/50)
-    blocksizeY=int(MAP_HEIGHT/50)
     for x in range(0, MAP_WIDTH, blocksizeX):
         for y in range(0, MAP_HEIGHT, blocksizeY):
             rect = pygame.Rect(x, y, blocksizeX, blocksizeY)
@@ -85,8 +88,39 @@ def drawGrid():
             pygame.draw.rect(SURFACE, MAP_COLORS[i], rect)
 
 def drawPlayer():
+    width=30
+    height=10
     for i in range(4):
-        pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i], 40)
+        pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i],blocksizeX/2-5)
+        angle_rad = math.radians(PLAYER_ANGLES[i])
+        x=PLAYER_POSITIONS[i][0]
+        y=PLAYER_POSITIONS[i][1]
+        # Define rectangle corners relative to (x, y)
+        barrel_x1 = x + math.cos(angle_rad) * -5  # Move inside the circle
+        barrel_y1 = y + math.sin(angle_rad) * -5
+
+        # Barrel ending point (outside)
+        barrel_x2 = x + math.cos(angle_rad) * (width - 5)
+        barrel_y2 = y + math.sin(angle_rad) * (width - 5)
+
+        # Find perpendicular direction to create thickness
+        perp_x = -math.sin(angle_rad) * (height // 2)
+        perp_y = math.cos(angle_rad) * (height // 2)
+
+        # Define rectangle corners
+        points = [
+            (barrel_x1 + perp_x, barrel_y1 + perp_y),  # Top-left
+            (barrel_x1 - perp_x, barrel_y1 - perp_y),  # Bottom-left
+            (barrel_x2 - perp_x, barrel_y2 - perp_y),  # Bottom-right
+            (barrel_x2 + perp_x, barrel_y2 + perp_y)  # Top-right
+        ]
+
+        # Draw barrel (rotated rectangle inside the circle)
+        pygame.draw.polygon(SCREEN, PLAYER_COLORS[i], points)
+
+        # Draw barrel (rotated rectangle)
+        pygame.draw.polygon(SCREEN, PLAYER_COLORS[i], points)
+        pygame.draw.polygon(SURFACE, PLAYER_COLORS[i], points)
 
 def CamView():
     cam_x = max(0, min(PLAYER_POSITIONS[PLAYER][0] - WINDOW_WIDTH // 2, MAP_WIDTH - WINDOW_WIDTH))
@@ -110,14 +144,10 @@ while is_running:
     drawGrid()
     drawPlayer()
     CamView()
+    PLAYER_ANGLES[0]+=1
+    PLAYER_ANGLES[1]-=1
+
     PLAYER_POSITIONS[0][1]+=10
-    PLAYER_POSITIONS[0][0] += 10
-    PLAYER_POSITIONS[1][1] += 5
-    PLAYER_POSITIONS[1][0] += 10
-    PLAYER_POSITIONS[2][1] += 10
-    PLAYER_POSITIONS[2][0] += 20
-    PLAYER_POSITIONS[3][1] += 10
-    PLAYER_POSITIONS[3][0] += 30
     delay(20)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
