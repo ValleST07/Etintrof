@@ -1,4 +1,6 @@
 import pygame
+from pygame.time import delay
+
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
@@ -68,7 +70,7 @@ PLAYER_POSITIONS=[[10,10],[100,50],[50,100],[200,200]]
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
-ZOOM_FACTOR=5
+ZOOM_FACTOR=3
 
 MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
 MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
@@ -89,16 +91,18 @@ def drawPlayer():
 def CamView():
     cam_x = max(0, min(PLAYER_POSITIONS[PLAYER][0] - WINDOW_WIDTH // 2, MAP_WIDTH - WINDOW_WIDTH))
     cam_y = max(0, min(PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT // 2, MAP_HEIGHT - WINDOW_HEIGHT))
+
+    cam_x =PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
+    cam_y = PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
     camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
+    SCREEN.fill((0, 0, 0))
     SCREEN.blit(SURFACE, (0, 0), camera_view)
 
 pygame.init()
 
 pygame.display.set_caption('Etintrof')
 SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was man sieht; teil der Map; mit zoom
-SURFACE = pygame.Surface((WINDOW_HEIGHT, WINDOW_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
-
-
+SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
 is_running = True
 
@@ -106,6 +110,15 @@ while is_running:
     drawGrid()
     drawPlayer()
     CamView()
+    PLAYER_POSITIONS[0][1]+=10
+    PLAYER_POSITIONS[0][0] += 10
+    PLAYER_POSITIONS[1][1] += 5
+    PLAYER_POSITIONS[1][0] += 10
+    PLAYER_POSITIONS[2][1] += 10
+    PLAYER_POSITIONS[2][0] += 20
+    PLAYER_POSITIONS[3][1] += 10
+    PLAYER_POSITIONS[3][0] += 30
+    delay(20)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
