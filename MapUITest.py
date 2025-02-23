@@ -1,4 +1,5 @@
 import pygame
+from pygame.examples.aliens import Player
 from pygame.time import delay
 import math
 
@@ -67,7 +68,7 @@ BLACK = (0,0,0)
 PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
 
 #                   RED     GREEN    YELLOW   BLACK
-PLAYER_POSITIONS=[[500,100],[100,50],[50,100],[200,200]]
+PLAYER_POSITIONS=[[500,500],[100,50],[50,100],[200,200]]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
@@ -124,19 +125,11 @@ def drawPlayer():
         pygame.draw.polygon(SURFACE, PLAYER_COLORS[i], points)
 
 def CamView():
-    cam_x = max(0, min(PLAYER_POSITIONS[PLAYER][0] - WINDOW_WIDTH // 2, MAP_WIDTH - WINDOW_WIDTH))
-    cam_y = max(0, min(PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT // 2, MAP_HEIGHT - WINDOW_HEIGHT))
-
-    cam_x =PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
-    cam_y = PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
+    cam_x=PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
+    cam_y=PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
     camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
     SCREEN.fill((0, 0, 0))
     SCREEN.blit(SURFACE, (0, 0), camera_view)
-
-def GetAngleMousePlayer():
-    MousePos=pygame.mouse.get_pos()
-    delta=[MousePos[0]-PLAYER_POSITIONS[PLAYER][0],MousePos[1]-PLAYER_POSITIONS[PLAYER][1]]
-    return math.atan2(delta[1],delta[0])
 
 pygame.init()
 
@@ -150,10 +143,12 @@ while is_running:
     drawGrid()
     drawPlayer()
     CamView()
-    PLAYER_ANGLES[PLAYER]=GetAngleMousePlayer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
-
+        elif event.type == pygame.MOUSEMOTION:
+            mousex, mousey = event.pos
+            # build a vector between player position and mouse position
+            delta = (mousex - WINDOW_WIDTH/2, mousey - WINDOW_HEIGHT/2)
+            PLAYER_ANGLES[PLAYER] =  math.atan2(delta[1],delta[0])
     pygame.display.update()
-
