@@ -143,6 +143,8 @@ while is_running:
     drawGrid()
     drawPlayer()
     CamView()
+    PLAYER_POSITIONS[PLAYER][0]+=1
+    PLAYER_POSITIONS[PLAYER][1]+=1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
