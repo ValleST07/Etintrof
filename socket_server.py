@@ -19,7 +19,7 @@ def senden(addr):
         
 
 hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
+local_ip = '192.168.0.100'
 local_addr = (local_ip,4444)
 player_addr = [0]
 
@@ -33,7 +33,6 @@ while True:
             player_addr[0]+=1
             player_addr.append(player_addr[0])
             player_addr.append(addr)
-
         with conn:
             print(f"Connected by {addr}")
             while True:
