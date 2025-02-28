@@ -1,7 +1,6 @@
 import pygame
 
-
-def show_start_screen():
+def get_IP():
     # Farben definieren
     WHITE = (240, 240, 240)
     BLACK = (30, 30, 30)
@@ -79,8 +78,3 @@ def show_start_screen():
         screen.blit(button_text, (button_box.x + 50, button_box.y + 10))
 
         pygame.display.flip()
-
-
-if __name__ == "__main__":
-    address = show_start_screen()
-    print("Eingegebene IP-Adresse:", address)
