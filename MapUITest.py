@@ -69,6 +69,7 @@ PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
 
 #                   RED     GREEN    YELLOW   BLACK
 PLAYER_POSITIONS=[[500,500],[100,50],[50,100],[200,200]]
+PROJECTILE_POSITIONS=[[0,0],[0,0]]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
@@ -82,6 +83,12 @@ MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
 blocksizeX=int(MAP_WIDTH/50)
 blocksizeY=int(MAP_HEIGHT/50)
 
+playersize=blocksizeX/2-5
+playerbarrelsizeX=30
+playerbarrelsizeY=10
+
+projectilesize=playersize/2
+
 def drawGrid():
     for x in range(0, MAP_WIDTH, blocksizeX):
         for y in range(0, MAP_HEIGHT, blocksizeY):
@@ -90,10 +97,8 @@ def drawGrid():
             pygame.draw.rect(SURFACE, MAP_COLORS[i], rect)
 
 def drawPlayer():
-    width=30
-    height=10
-    for i in range(4):
-        pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i],blocksizeX/2-5)
+    for i in range(len(PLAYER_POSITIONS)):
+        pygame.draw.circle(SURFACE, PLAYER_COLORS[i], PLAYER_POSITIONS[i],playersize)
         angle_rad = PLAYER_ANGLES[i]
         x=PLAYER_POSITIONS[i][0]
         y=PLAYER_POSITIONS[i][1]
@@ -102,12 +107,12 @@ def drawPlayer():
         barrel_y1 = y + math.sin(angle_rad) * -5
 
         # Barrel ending point (outside)
-        barrel_x2 = x + math.cos(angle_rad) * (width - 5)
-        barrel_y2 = y + math.sin(angle_rad) * (width - 5)
+        barrel_x2 = x + math.cos(angle_rad) * (playerbarrelsizeX - 5)
+        barrel_y2 = y + math.sin(angle_rad) * (playerbarrelsizeX - 5)
 
         # Find perpendicular direction to create thickness
-        perp_x = -math.sin(angle_rad) * (height // 2)
-        perp_y = math.cos(angle_rad) * (height // 2)
+        perp_x = -math.sin(angle_rad) * (playerbarrelsizeY // 2)
+        perp_y = math.cos(angle_rad) * (playerbarrelsizeY // 2)
 
         # Define rectangle corners
         points = [
@@ -117,12 +122,12 @@ def drawPlayer():
             (barrel_x2 + perp_x, barrel_y2 + perp_y)  # Top-right
         ]
 
-        # Draw barrel (rotated rectangle inside the circle)
-        pygame.draw.polygon(SCREEN, PLAYER_COLORS[i], points)
-
-        # Draw barrel (rotated rectangle)
-        pygame.draw.polygon(SCREEN, PLAYER_COLORS[i], points)
         pygame.draw.polygon(SURFACE, PLAYER_COLORS[i], points)
+
+def drawProjectile():
+    for i in range(len(PROJECTILE_POSITIONS)):
+        pygame.draw.circle(SURFACE, (90,90,90), PROJECTILE_POSITIONS[i], projectilesize)
+
 
 def CamView():
     cam_x=PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
@@ -139,12 +144,18 @@ SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zo
 
 is_running = True
 
+
 while is_running:
     drawGrid()
     drawPlayer()
+    drawProjectile()
     CamView()
-    PLAYER_POSITIONS[PLAYER][0]+=1
-    PLAYER_POSITIONS[PLAYER][1]+=1
+    PLAYER_POSITIONS[PLAYER][0]-=1
+    PLAYER_POSITIONS[PLAYER][1]-=1
+    PROJECTILE_POSITIONS[0][0]=PLAYER_POSITIONS[PLAYER][0]+40
+    PROJECTILE_POSITIONS[0][1] = PLAYER_POSITIONS[PLAYER][0] + 40
+    PROJECTILE_POSITIONS[1][0] = PLAYER_POSITIONS[PLAYER][0] + 50
+    PROJECTILE_POSITIONS[1][1] = PLAYER_POSITIONS[PLAYER][0] + 70
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
