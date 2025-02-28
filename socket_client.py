@@ -19,7 +19,7 @@ def antwort(local_addr):
 counter = 0
 
 hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
+local_ip = '192.168.0.101'
 local_addr = (local_ip,4444)
 print(local_addr)
 
@@ -31,7 +31,7 @@ while True:
         s=socket.socket()
         s.connect(addr)
 
-        data = bytes(f"{use}","utf-8")
+        data = bytes(f"{use},\n {local_addr}","utf-8")
         s.sendall(data)
         s.close()
         
