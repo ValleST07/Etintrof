@@ -1,7 +1,7 @@
 import pygame
-from pygame.examples.aliens import Player
-from pygame.time import delay
 import math
+
+from pygame.time import delay
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
@@ -68,8 +68,9 @@ BLACK = (0,0,0)
 PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
 
 #                   RED     GREEN    YELLOW   BLACK
-PLAYER_POSITIONS=[[500,500],[100,50],[50,100],[200,200]]
-PROJECTILE_POSITIONS=[[0,0],[0,0]]
+PLAYER_POSITIONS=[[500,500],[100,50],[100,100],[200,200]]
+PROJECTILE_POSITIONS=[]
+PLAYER_LIFES=[50,100,100,100]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
@@ -88,6 +89,29 @@ playerbarrelsizeX=30
 playerbarrelsizeY=10
 
 projectilesize=playersize/2
+
+healthbarWidth=70
+healthbarHeigth=10
+healthbarDistFromPlayer=40
+
+LMB=False
+keys = {
+    "W": False,
+    "A": False,
+    "S": False,
+    "D": False,
+}
+dirTo8Way = {
+    (1, 0): 2,    # Right
+    (-1, 0): 6,   # Left
+    (0, 1): 4,    # Down
+    (0, -1): 0,   # Up
+    (1, -1): 1,   # Up-Right
+    (1, 1): 3,    # Down-Right
+    (-1, 1): 5,   # Down-Left
+    (-1, -1): 7,  # Up-Left
+}
+
 
 def drawGrid():
     for x in range(0, MAP_WIDTH, blocksizeX):
@@ -123,11 +147,28 @@ def drawPlayer():
         ]
 
         pygame.draw.polygon(SURFACE, PLAYER_COLORS[i], points)
+        drawHealthbar()
+
+def drawHealthbar():
+    for i in range(len(PLAYER_POSITIONS)):
+        life=PLAYER_LIFES[i]
+        backgroundRect = pygame.Rect(PLAYER_POSITIONS[i][0] - healthbarWidth/2, PLAYER_POSITIONS[i][1] - healthbarDistFromPlayer-healthbarHeigth/2, healthbarWidth, healthbarHeigth)
+        pygame.draw.rect(SURFACE, (150,150,150), backgroundRect)
+
+        foregroundRect = pygame.Rect(PLAYER_POSITIONS[i][0] - healthbarWidth / 2,
+                                     PLAYER_POSITIONS[i][1] - healthbarDistFromPlayer - healthbarHeigth / 2,
+                                     healthbarWidth*life/100, healthbarHeigth)
+
+        if (life>=80): color=(0, 153, 51)
+        elif (life>=60): color=(153, 255, 102)
+        elif (life>=40): color=(255, 255, 0)
+        elif (life>=20): color=(255, 0, 0)
+        else: color=(204,0,0)
+        pygame.draw.rect(SURFACE, color, foregroundRect)
 
 def drawProjectile():
     for i in range(len(PROJECTILE_POSITIONS)):
         pygame.draw.circle(SURFACE, (90,90,90), PROJECTILE_POSITIONS[i], projectilesize)
-
 
 def CamView():
     cam_x=PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
@@ -135,6 +176,15 @@ def CamView():
     camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
     SCREEN.fill((0, 0, 0))
     SCREEN.blit(SURFACE, (0, 0), camera_view)
+
+def sendInputs():
+    x = keys["D"] - keys["A"]
+    y = keys["S"] - keys["W"]
+    mov_direction = dirTo8Way.get((x, y), None)
+    angle=PLAYER_ANGLES[PLAYER]
+    mouse=LMB
+    print(f"dir:{mov_direction}, angle:{angle}, mouse:{mouse}")
+
 
 pygame.init()
 
@@ -150,18 +200,41 @@ while is_running:
     drawPlayer()
     drawProjectile()
     CamView()
-    PLAYER_POSITIONS[PLAYER][0]-=1
-    PLAYER_POSITIONS[PLAYER][1]-=1
-    PROJECTILE_POSITIONS[0][0]=PLAYER_POSITIONS[PLAYER][0]+40
-    PROJECTILE_POSITIONS[0][1] = PLAYER_POSITIONS[PLAYER][0] + 40
-    PROJECTILE_POSITIONS[1][0] = PLAYER_POSITIONS[PLAYER][0] + 50
-    PROJECTILE_POSITIONS[1][1] = PLAYER_POSITIONS[PLAYER][0] + 70
+    sendInputs()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
-        elif event.type == pygame.MOUSEMOTION:
+        if event.type == pygame.MOUSEMOTION:
             mousex, mousey = event.pos
             # build a vector between player position and mouse position
             delta = (mousex - WINDOW_WIDTH/2, mousey - WINDOW_HEIGHT/2)
             PLAYER_ANGLES[PLAYER] =  math.atan2(delta[1],delta[0])
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                keys["W"] = True
+            if event.key == pygame.K_a:
+                keys["A"] = True
+            if event.key == pygame.K_s:
+                keys["S"] = True
+            if event.key == pygame.K_d:
+                keys["D"] = True
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_w:
+                keys["W"] = False
+            if event.key == pygame.K_a:
+                keys["A"] = False
+            if event.key == pygame.K_s:
+                keys["S"] = False
+            if event.key == pygame.K_d:
+                keys["D"] = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left mouse button
+                LMB = True
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:  # Left mouse button
+                LMB = False
+
     pygame.display.update()
