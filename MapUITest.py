@@ -4,7 +4,7 @@ from pygame.time import delay
 import math
 import  sendToServer
 
-server_ip=LoginScreen.get_IP()
+server_ip='192.168.0.106'#LoginScreen.get_IP()
 server_addr=(server_ip, 4444)
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
