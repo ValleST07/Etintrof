@@ -13,20 +13,21 @@ def antwort(local_addr):
                     break
                 data = str(data,"utf-8")
                 print(data)
+                
 
 
 
 counter = 0
 
 hostname = socket.gethostname()
-local_ip = '192.168.0.101'
+local_ip = '192.168.0.100'
 local_addr = (local_ip,4444)
 print(local_addr)
 
 while True:
     use = input ("What to you want to send->")
     if use:
-        addr=('192.168.0.100',local_addr[1])
+        addr=('192.168.0.101',local_addr[1])
 
         s=socket.socket()
         s.connect(addr)
