@@ -58,15 +58,6 @@ def get_IP():
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     return None
-                elif event.key == pygame.K_F11:
-                    fullscreen = not fullscreen
-                    if fullscreen:
-                        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-                    else:
-                        screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-                    WIDTH, HEIGHT = screen.get_size()
-                    font, large_font = get_fonts(HEIGHT)
-                    input_box, button_box = get_rects(WIDTH, HEIGHT)
                 # Verarbeitung der IP-Eingabe, wenn das Eingabefeld aktiv ist
                 elif active:
                     if event.key == pygame.K_RETURN:
