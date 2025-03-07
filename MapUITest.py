@@ -202,6 +202,7 @@ while is_running:
     drawProjectile()
     CamView()
     sendInputs()
+    PLAYER_POSITIONS[PLAYER][0]+=1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
