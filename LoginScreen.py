@@ -1,6 +1,5 @@
 import pygame
 
-
 def get_IP():
     # Farben definieren
     WHITE = (240, 240, 240)
@@ -55,6 +54,7 @@ def get_IP():
                 pygame.quit()
                 return None
             elif event.type == pygame.KEYDOWN:
+                # Globale Tastenkürzel
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     return None
@@ -67,6 +67,15 @@ def get_IP():
                     WIDTH, HEIGHT = screen.get_size()
                     font, large_font = get_fonts(HEIGHT)
                     input_box, button_box = get_rects(WIDTH, HEIGHT)
+                # Verarbeitung der IP-Eingabe, wenn das Eingabefeld aktiv ist
+                elif active:
+                    if event.key == pygame.K_RETURN:
+                        return ip_address if ip_address else placeholder
+                    elif event.key == pygame.K_BACKSPACE:
+                        ip_address = ip_address[:-1]
+                    else:
+                        ip_address += event.unicode  # Zeichen hinzufügen
+
             elif event.type == pygame.VIDEORESIZE:
                 WIDTH, HEIGHT = event.w, event.h
                 screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
@@ -79,26 +88,24 @@ def get_IP():
                     active = False
                 if button_box.collidepoint(event.pos):
                     return ip_address if ip_address else placeholder
-            elif event.type == pygame.KEYDOWN and active:
-                if event.key == pygame.K_RETURN:
-                    return ip_address if ip_address else placeholder
-                elif event.key == pygame.K_BACKSPACE:
-                    ip_address = ip_address[:-1]
-                else:
-                    ip_address += event.unicode
 
         # Input-Feld zeichnen
         pygame.draw.rect(screen, LIGHT_BLUE if active else GRAY, input_box, border_radius=10)
         display_text = ip_address if ip_address else placeholder
-        text_color = BLACK if ip_address else (150, 150, 150)
+        text_color = BLACK if ip_address else (150, 150, 150)  # Grauer Text, wenn keine Eingabe
         text_surface = font.render(display_text, True, text_color)
         text_rect = text_surface.get_rect(center=input_box.center)
-        screen.blit(text_surface, text_rect.topleft)
+        screen.blit(text_surface, text_rect)
 
         # Start-Button zeichnen
         pygame.draw.rect(screen, HOVER_BLUE if hover else BLUE, button_box, border_radius=10)
         button_text = font.render("Start", True, WHITE)
         text_rect = button_text.get_rect(center=button_box.center)
-        screen.blit(button_text, text_rect.topleft)
+        screen.blit(button_text, text_rect)
 
         pygame.display.flip()
+
+
+# Teste die Funktion nur, wenn dieses Skript direkt ausgeführt wird
+if __name__ == "__main__":
+    print(get_IP())
