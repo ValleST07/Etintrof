@@ -4,7 +4,7 @@ from pygame.time import delay
 import math
 import  sendToServer
 
-server_ip='192.168.0.106'#LoginScreen.get_IP()
+server_ip=LoginScreen.get_IP()
 server_addr=(server_ip, 4444)
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -184,10 +184,10 @@ def CamView():
 def sendInputs():
     x = keys["D"] - keys["A"]
     y = keys["S"] - keys["W"]
-    mov_direction = dirTo8Way.get((x, y), None)
+    mov_direction = dirTo8Way.get((x, y), -1)
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
-    sendToServer.transmit(server_addr,f"dir:{mov_direction}, angle:{angle}, mouse:{mouse}")
+    sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
 
 pygame.init()
 
