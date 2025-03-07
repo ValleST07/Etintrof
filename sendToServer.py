@@ -1,0 +1,41 @@
+import socket
+import psutil
+
+def get_wlan_ip():
+    for interface, addrs in psutil.net_if_addrs().items():
+        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:  # Adjust for your OS naming
+            for addr in addrs:
+                if addr.family == socket.AF_INET:  # IPv4 address
+                    print(f"{interface}: {addr.address}")
+                    return addr.address
+    print("WLAN interface not found")
+
+
+def receive():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(local_addr)
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            #print(f"Connected by {addr}")
+            while True:
+                data = conn.recv(1024)
+                if not data:
+                    break
+                data = str(data, "utf-8")
+                return data
+
+
+def transmit(server_addr, data):#localAddr=(local_ip,port) port=4444
+    try:
+        s = socket.socket()
+        s.connect(server_addr)
+
+        data = bytes(f"{data},\n {local_addr}", "utf-8")
+        s.sendall(data)
+        s.close()
+    except:
+        print("!!!!!!!!!!!!!!_KEINE VERBINDUNG ZUM SERVER_!!!!!!!!!!!!!!")
+
+local_addr=(get_wlan_ip(), 4444)
+print(local_addr)

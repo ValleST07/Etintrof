@@ -2,8 +2,11 @@ import LoginScreen
 import pygame
 from pygame.time import delay
 import math
+import  sendToServer
 
-IPADDRESS=LoginScreen.get_IP()
+server_ip=LoginScreen.get_IP()
+server_addr=(server_ip, 4444)
+
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
 [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
@@ -184,8 +187,7 @@ def sendInputs():
     mov_direction = dirTo8Way.get((x, y), None)
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
-    print(f"dir:{mov_direction}, angle:{angle}, mouse:{mouse}")
-
+    sendToServer.transmit(server_addr,f"dir:{mov_direction}, angle:{angle}, mouse:{mouse}")
 
 pygame.init()
 
@@ -194,7 +196,6 @@ SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was ma
 SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
 is_running = True
-
 
 while is_running:
     drawGrid()
