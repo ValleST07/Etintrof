@@ -184,7 +184,7 @@ def CamView():
 def sendInputs():
     x = keys["D"] - keys["A"]
     y = keys["S"] - keys["W"]
-    mov_direction = dirTo8Way.get((x, y), -1)
+    mov_direction = dirTo8Way.get((x, y), 9) #9=keine bewegung
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
     sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
