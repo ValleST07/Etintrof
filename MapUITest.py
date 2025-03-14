@@ -189,6 +189,11 @@ def sendInputs():
     mouse=LMB
     sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
 
+def handleReceivedData():
+    data=sendToServer.receive()
+    print(data)
+
+
 pygame.init()
 
 pygame.display.set_caption('Etintrof')
@@ -203,6 +208,7 @@ while is_running:
     drawProjectile()
     CamView()
     sendInputs()
+    handleReceivedData()
     PLAYER_POSITIONS[PLAYER][0]+=1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
