@@ -4,7 +4,28 @@ from pygame.time import delay
 import math
 import  sendToServer
 
-server_ip=LoginScreen.get_IP()
+WINDOW_HEIGHT = 800
+WINDOW_WIDTH = 800
+ZOOM_FACTOR=3
+
+MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
+MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
+
+blocksizeX=int(MAP_WIDTH/50)
+blocksizeY=int(MAP_HEIGHT/50)
+
+playersize=blocksizeX/2-5
+playerbarrelsizeX=30
+playerbarrelsizeY=10
+
+projectilesize=playersize/2
+
+healthbarWidth=70
+healthbarHeigth=10
+healthbarDistFromPlayer=40
+
+#server_ip=LoginScreen.get_IP()
+server_ip='172.20.10.14'
 server_addr=(server_ip, 4444)
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -60,16 +81,11 @@ Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 
 PLAYER = 0 # 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
 
-FLOOR = (237, 157, 108)
-WALL = (133,64,33)
-WATER = (29,152,221)
-MAP_COLORS=[FLOOR, WALL, WATER]
+#               FLOOR           WALL        WATER
+MAP_COLORS=[(237, 157, 108), (133,64,33), (29,152,221)]
 
-RED=(255,0,0)
-GREEN=(0,255,0)
-YELLOW=(255,255,0)
-BLACK = (0,0,0)
-PLAYER_COLORS=[RED, GREEN, YELLOW, BLACK]
+#               RED         GREEN       YELLOW      BLACK
+PLAYER_COLORS=[(255,0,0), (0,255,0), (255,255,0), (0,0,0)]
 
 #                   RED     GREEN    YELLOW   BLACK
 PLAYER_POSITIONS=[[500,500],[100,50],[100,100],[200,200]]
@@ -77,26 +93,6 @@ PROJECTILE_POSITIONS=[]
 PLAYER_LIFES=[50,100,100,100]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
-
-WINDOW_HEIGHT = 800
-WINDOW_WIDTH = 800
-ZOOM_FACTOR=3
-
-MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
-MAP_WIDTH=WINDOW_WIDTH*ZOOM_FACTOR
-
-blocksizeX=int(MAP_WIDTH/50)
-blocksizeY=int(MAP_HEIGHT/50)
-
-playersize=blocksizeX/2-5
-playerbarrelsizeX=30
-playerbarrelsizeY=10
-
-projectilesize=playersize/2
-
-healthbarWidth=70
-healthbarHeigth=10
-healthbarDistFromPlayer=40
 
 LMB=False
 keys = {
@@ -115,7 +111,6 @@ dirTo8Way = {
     (-1, 1): 5,   # Down-Left
     (-1, -1): 7,  # Up-Left
 }
-
 
 def drawGrid():
     for x in range(0, MAP_WIDTH, blocksizeX):
@@ -193,7 +188,6 @@ def handleReceivedData():
     data=sendToServer.receive()
     print(data)
 
-
 pygame.init()
 
 pygame.display.set_caption('Etintrof')
@@ -209,7 +203,6 @@ while is_running:
     CamView()
     sendInputs()
     handleReceivedData()
-    PLAYER_POSITIONS[PLAYER][0]+=1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
