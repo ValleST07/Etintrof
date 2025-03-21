@@ -94,7 +94,7 @@ PLAYER_LIFES=[50,100,100,100]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
-LMB=False
+LMB=0
 keys = {
     "W": False,
     "A": False,
@@ -233,10 +233,10 @@ while is_running:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
-                LMB = True
+                LMB = 1
 
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:  # Left mouse button
-                LMB = False
+                LMB = 0
 
     pygame.display.update()
