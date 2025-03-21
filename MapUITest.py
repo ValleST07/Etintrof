@@ -3,6 +3,7 @@ import pygame
 from pygame.time import delay
 import math
 import  sendToServer
+import ast
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
@@ -179,14 +180,15 @@ def CamView():
 def sendInputs():
     x = keys["D"] - keys["A"]
     y = keys["S"] - keys["W"]
-    mov_direction = dirTo8Way.get((x, y), 9) #9=keine bewegung
+    mov_direction = dirTo8Way.get((x, y), 2) #8=keine bewegung
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
     sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
 
 def handleReceivedData():
     data=sendToServer.receive()
-    print(data)
+    PLAYER_POSITIONS=ast.literal_eval(data)
+    print(f"PP:{PLAYER_POSITIONS}")
 
 pygame.init()
 

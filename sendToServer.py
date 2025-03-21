@@ -22,7 +22,8 @@ def receive():
                 data = conn.recv(1024)
                 if not data:
                     break
-                data = str(data, "utf-8")
+                data=data.decode('utf-8').strip()
+                print(f"Rohdaten vom Server:{data}")
                 return data
 
 
