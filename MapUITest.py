@@ -180,13 +180,19 @@ def CamView():
 def sendInputs():
     x = keys["D"] - keys["A"]
     y = keys["S"] - keys["W"]
-    mov_direction = dirTo8Way.get((x, y), 2) #8=keine bewegung
+    mov_direction = dirTo8Way.get((x, y), 8) #8=keine bewegung
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
-    sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
+    sendToServer.transmit(server_addr, f"{PLAYER};{mov_direction};{angle};{mouse}")
 
 def handleReceivedData():
     data=sendToServer.receive()
+    global PLAYER
+    global PLAYER_POSITIONS
+    if (data[0]=='F'):
+        PLAYER=int(data[1])
+        print(f"PlayerNum={PLAYER}")
+        return
     PLAYER_POSITIONS=ast.literal_eval(data)
     print(f"PP:{PLAYER_POSITIONS}")
 
@@ -198,7 +204,9 @@ SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zo
 
 is_running = True
 
+count=0
 while is_running:
+    count+=1
     drawGrid()
     drawPlayer()
     drawProjectile()
@@ -240,5 +248,4 @@ while is_running:
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:  # Left mouse button
                 LMB = 0
-
     pygame.display.update()
