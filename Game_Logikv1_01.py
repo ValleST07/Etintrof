@@ -2,14 +2,15 @@ import json
 import socket
 
 
-
-def handle_player(conn, addr, player_num, player_position):
+def handle_player(addr, player_num, player_position):
     print(f"Verbunden mit {addr} als Spieler {player_num + 1}")
-
+    s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         while True:
-            data = conn.recv(1024)
+            data, addr = s.recvfrom(1024)
+
             if not data:
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                 break
             try:
                 data = data.decode('utf-8').strip()
@@ -123,12 +124,10 @@ def senden(player_position, addr):
     try:
         # Konvertiere die Positionen in JSON
         print(addr)
-        s=socket.socket()
-        s.connect((addr[0],4444))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
             
         data= bytes(f"{player_position}","utf-8")
-        # Senden
-        s.sendall(data)
+        sock.sendto(data,(addr[0],4444))
         print(f"Gesendete Daten: {data}")
         
     except Exception as e:
@@ -136,26 +135,26 @@ def senden(player_position, addr):
 
 def start_server(local_ip, player_number, local_addr):
     player_addr = []
-    player_position = [[10, 10], [10, 2390], [2390, 10], [2390, 2390]]
+    player_position = [[100, 100], [100, 2300], [2300, 100], [2300, 2300]]
 
     # Server starten
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.bind(local_addr)
-        s.listen()
         print(f"Server startet auf {local_ip}: {local_addr[1]} ...")
         print(f"Warte auf {player_number} Spieler...")
 
         try:
             while len(player_addr)<player_number:
-                conn, addr = s.accept()
-                player_addr.append(addr)
+                data, addr = s.recvfrom(1024)
+                if addr not in player_addr:
+                    player_addr.append(addr)
+                    senden(f"F{len(player_addr)}", addr)
                 print(f"{len(player_addr)}/{player_number} verbunden")
             print(f"\\n\rAlle {player_number} Spieler verbunden!")
-            
+        
             while True:
-                for player_num in range(len(player_addr)): 
-                    handle_player(conn, player_addr[player_num], player_num, player_position)
-                    print(player_num)
+                handle_player(player_addr[player_num], player_num, player_position)
+                
                 for addr in player_addr:
                     senden(player_position, addr)
 
