@@ -20,7 +20,7 @@ def receive():
             if not data:
                 break
             data=data.decode('utf-8').strip()
-            print(f"Rohdaten vom Server:{data}")
+            #print(f"Rohdaten vom Server:{data}")
             return data
 
 

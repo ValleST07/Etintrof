@@ -194,7 +194,7 @@ def handleReceivedData():
         print(f"PlayerNum={PLAYER}")
         return
     PLAYER_POSITIONS=ast.literal_eval(data)
-    print(f"PP:{PLAYER_POSITIONS}")
+    #print(f"PP:{PLAYER_POSITIONS}")
 
 pygame.init()
 
