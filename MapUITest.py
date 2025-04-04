@@ -2,7 +2,8 @@ import LoginScreen
 import pygame
 from pygame.time import delay
 import math
-import  sendToServer
+import sendToServer
+import ast
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
@@ -25,7 +26,7 @@ healthbarHeigth=10
 healthbarDistFromPlayer=40
 
 #server_ip=LoginScreen.get_IP()
-server_ip='172.20.10.14'
+server_ip='192.168.0.102'
 server_addr=(server_ip, 4444)
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -179,14 +180,24 @@ def CamView():
 def sendInputs():
     x = keys["D"] - keys["A"]
     y = keys["S"] - keys["W"]
-    mov_direction = dirTo8Way.get((x, y), 9) #9=keine bewegung
+    mov_direction = dirTo8Way.get((x, y), 8) #8=keine bewegung
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
-    sendToServer.transmit(server_addr,f"{mov_direction};{angle};{mouse}")
+    sendToServer.transmit(server_addr, f"{PLAYER};{mov_direction};{angle};{mouse}")
 
 def handleReceivedData():
     data=sendToServer.receive()
-    print(data)
+    global PLAYER
+    global PLAYER_POSITIONS
+    global PLAYER_ANGLES
+    if (data[0]=='F'):
+        PLAYER=int(data[1])
+        print(f"PlayerNum={PLAYER}")
+        return
+    dataList=data.split('*')
+    PLAYER_POSITIONS=ast.literal_eval(dataList[0])
+    PLAYER_ANGLES=ast.literal_eval(dataList[1])
+    #print(f"PP:{PLAYER_POSITIONS}")
 
 pygame.init()
 
@@ -196,7 +207,9 @@ SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zo
 
 is_running = True
 
+count=0
 while is_running:
+    count+=1
     drawGrid()
     drawPlayer()
     drawProjectile()
@@ -238,5 +251,4 @@ while is_running:
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:  # Left mouse button
                 LMB = 0
-
     pygame.display.update()

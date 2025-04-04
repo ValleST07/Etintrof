@@ -12,28 +12,24 @@ def get_wlan_ip():
 
 
 def receive():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(local_addr)
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            #print(f"Connected by {addr}")
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                data = str(data, "utf-8")
-                return data
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.bind(local_addr)
+
+        while True:
+            data, addr = sock.recvfrom(1024)
+            if not data:
+                break
+            data=data.decode('utf-8').strip()
+            #print(f"Rohdaten vom Server:{data}")
+            return data
 
 
 def transmit(server_addr, data):#localAddr=(local_ip,port) port=4444
     try:
-        s = socket.socket()
-        s.connect(server_addr)
-
+        sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # UDP
         data = bytes(f"{data},\n {local_addr}", "utf-8")
-        s.sendall(data)
-        s.close()
+        sock.sendto(data,server_addr)
+        sock.close()
     except:
         print("!!!!!!!!!!!!!!_KEINE VERBINDUNG ZUM SERVER_!!!!!!!!!!!!!!")
 
