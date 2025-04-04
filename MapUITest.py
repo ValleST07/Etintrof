@@ -165,11 +165,12 @@ is_running = True
 count=0
 while is_running:
     count+=1
-    drawGrid()
-    drawPlayer()
-    drawProjectile()
-    CamView()
-    sendInputs()
+    if Map[0][0]:
+        drawGrid()
+        drawPlayer()
+        drawProjectile()
+        CamView()
+        sendInputs()
     handleReceivedData()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
