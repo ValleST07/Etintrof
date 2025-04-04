@@ -2,7 +2,7 @@ import LoginScreen
 import pygame
 from pygame.time import delay
 import math
-import  sendToServer
+import sendToServer
 import ast
 
 WINDOW_HEIGHT = 800
@@ -26,7 +26,7 @@ healthbarHeigth=10
 healthbarDistFromPlayer=40
 
 #server_ip=LoginScreen.get_IP()
-server_ip='172.20.10.14'
+server_ip='192.168.0.102'
 server_addr=(server_ip, 4444)
 
 Map=[[2, 0, 1, 2, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -189,11 +189,14 @@ def handleReceivedData():
     data=sendToServer.receive()
     global PLAYER
     global PLAYER_POSITIONS
+    global PLAYER_ANGLES
     if (data[0]=='F'):
         PLAYER=int(data[1])
         print(f"PlayerNum={PLAYER}")
         return
-    PLAYER_POSITIONS=ast.literal_eval(data)
+    DataList=ast.literal_eval(data)
+    PLAYER_POSITIONS=DataList[:4]
+    PLAYER_ANGLES=DataList[4]
     #print(f"PP:{PLAYER_POSITIONS}")
 
 pygame.init()
