@@ -1,12 +1,12 @@
 import socket
 player_position = [[100, 100], [100, 2300], [2300, 100], [2300, 2300]]
+player_angle=[0,0,0,0]
 
 def handle_player(s):
     global player_position
 
     while True:
         data, addr = s.recvfrom(1024)
-
         if not data:
             break
     
@@ -26,27 +26,28 @@ def parse_input(data):
     splited = data.split(";")
     # Beispiel: "player:1; dir:9; angle:0; mouse:False"
     player_num = int(splited[0])
+    
     direction = splited[1]
     angle = splited[2]
     mouse = splited[3]
     mouse = mouse[0]
 
-    print(direction,angle,mouse)
+    #print(player_num,direction,angle,mouse)
     return (player_num,direction,angle,mouse)
 
 
 
 def process_movement(player_num, direction, angle, mouse):
     """Verarbeitet die Eingabe des Spielers (Richtung, Winkel, Maus)."""
-
+    global player_angle
+    player_angle[player_num]=float(angle)
     if direction != "8":
         Bewegen(player_num, direction)
 
-    Aim_Angle(player_num, angle)
     if mouse != "0":
         Shot(player_num, player_position)
 
-   
+
 
 
 def Bewegen(player_num, direction):
@@ -85,29 +86,22 @@ def Bewegen(player_num, direction):
 
     player_position[player_num] = current_position
 
-def Aim_Angle(player_num, angle):
-    """Ziele mit dem Spieler basierend auf den Winkel"""
-    # This function can be implemented later
-    # For now, just acknowledge the angle
-    return None
 
 def Shot(player_num, positions):
     """Prüfen ob ein spieler getroffen und die monition anzeigen"""
-    # This function can be implemented later
-    # For now, just acknowledge the shot
+    
     return None
 
 def senden(addr, daten=None):
-    #wenn daten daten = none schickt normale Playerposition..., wenn daten nicht none schickt daten
-    #daten als string
     global player_position
-    #print(addr)
+    global player_angle
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     if daten:
-        sock.sendto(bytes(daten,"utf-8"),(addr[0],4444))
+        sock.sendto(bytes(daten,"utf-8"),(addr,4444))
         return
-    data= bytes(f"{player_position}","utf-8")
-    sock.sendto(data,(addr[0],4444))
+    data= bytes(f"{player_position}*{player_angle}","utf-8")
+    sock.sendto(data,(addr,4444))
     #print(f"Gesendete Daten: {data}")
 
 
@@ -123,11 +117,11 @@ def start_server(local_ip, player_number, local_addr):
     
         while len(player_addr)<player_number:
             data, addr = s.recvfrom(1024)
-            if addr not in player_addr:
-                player_addr.append(addr)
-                senden(addr, f"F{len(player_addr)-1}")
-                
-            print(f"{len(player_addr)}/{player_number} verbunden")
+            if addr[0] not in player_addr:
+                player_addr.append(addr[0])
+                print(f"{len(player_addr)}/{player_number} verbunden")
+                senden(addr[0], f"F{len(player_addr)-1}")
+            
         print(f"\\n\rAlle {player_number} Spieler verbunden!")
 
         while True:
@@ -141,7 +135,7 @@ def start_server(local_ip, player_number, local_addr):
 if __name__ == "__main__":
     # Server Setup
 
-    local_ip = input("Server IP (default: 172.20.10.14): ") or "172.20.10.14"
+    local_ip = input("Server IP (default: 172.20.10.14): ") or "192.168.0.102"
     player_number = int(input("Anzahl der Spieler -> ") or "2")
     port = int(input("Port (default: 4444): ") or "4444")
     
