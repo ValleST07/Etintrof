@@ -194,9 +194,9 @@ def handleReceivedData():
         PLAYER=int(data[1])
         print(f"PlayerNum={PLAYER}")
         return
-    DataList=ast.literal_eval(data)
-    PLAYER_POSITIONS=DataList[:4]
-    PLAYER_ANGLES=DataList[4]
+    dataList=data.split('*')
+    PLAYER_POSITIONS=ast.literal_eval(dataList[0])
+    PLAYER_ANGLES=ast.literal_eval(dataList[1])
     #print(f"PP:{PLAYER_POSITIONS}")
 
 pygame.init()
