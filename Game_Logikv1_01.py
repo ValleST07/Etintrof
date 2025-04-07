@@ -41,28 +41,10 @@ def generate_map(width=50, height=50):
             y = max(1, min(height-2, y + dy))
     
     return game_map
-map_data = generate_map()
+Map= generate_map()
 
 player_position = [[100, 100], [100, 2300], [2300, 100], [2300, 2300]]
 player_angle=[0,0,0,0]
-
-def handle_player(s):
-    global player_position
-
-    while True:
-        data, addr = s.recvfrom(1024)
-        if not data:
-            break
-    
-        data = data.decode('utf-8').strip()
-        parsed_data = parse_input(data)
-        if parsed_data:                    
-            process_movement(parsed_data[0], parsed_data[1], parsed_data[2], parsed_data[3])
-            return
-        else:
-            print(f"Keine Eingabe von {addr}: {data}")
-            continue  # Ungültige Eingabe, warte auf die nächste Nachricht
-
 
 def parse_input(data):
     """Parst die Eingabe des Clients und gibt sie als Dictionary zurück."""
@@ -79,17 +61,17 @@ def parse_input(data):
     #print(player_num,direction,angle,mouse)
     return (player_num,direction,angle,mouse)
 
-
-
-def process_movement(player_num, direction, angle, mouse):
-    """Verarbeitet die Eingabe des Spielers (Richtung, Winkel, Maus)."""
+def senden(addr, daten=None):
+    global player_position
     global player_angle
-    player_angle[player_num]=float(angle)
-    if direction != "8":
-        Bewegen(player_num, direction)
 
-    if mouse != "0":
-        Shot(player_num, player_position)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    if daten:
+        sock.sendto(bytes(daten,"utf-8"),(addr,4444))
+        return
+    data= bytes(f"{player_position}*{player_angle}","utf-8")
+    sock.sendto(data,(addr,4444))
+    #print(f"Gesendete Daten: {data}")
 
 def Check_Collision(pos):
     #block size 48
@@ -102,9 +84,6 @@ def Check_Collision(pos):
             return False
     except:
         return False
-
-
-
 
 def Bewegen(player_num, direction):
     #playersize 19
@@ -142,26 +121,39 @@ def Bewegen(player_num, direction):
 
     player_position[player_num] = current_position
 
-
 def Shot(player_num, positions):
     """Prüfen ob ein spieler getroffen und die monition anzeigen"""
     
     return None
 
-def senden(addr, daten=None):
-    global player_position
+def process_movement(player_num, direction, angle, mouse):
+    """Verarbeitet die Eingabe des Spielers (Richtung, Winkel, Maus)."""
     global player_angle
+    player_angle[player_num]=float(angle)
+    if direction != "8":
+        Bewegen(player_num, direction)
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-    if daten:
-        sock.sendto(bytes(daten,"utf-8"),(addr,4444))
-        return
-    data= bytes(f"{player_position}*{player_angle}","utf-8")
-    sock.sendto(data,(addr,4444))
-    #print(f"Gesendete Daten: {data}")
+    if mouse != "0":
+        Shot(player_num, player_position)
 
+def handle_player(s):
+    global player_position
 
-def start_server(local_ip, player_number, local_addr):
+    while True:
+        data, addr = s.recvfrom(1024)
+        if not data:
+            break
+    
+        data = data.decode('utf-8').strip()
+        parsed_data = parse_input(data)
+        if parsed_data:                    
+            process_movement(parsed_data[0], parsed_data[1], parsed_data[2], parsed_data[3])
+            return
+        else:
+            print(f"Keine Eingabe von {addr}: {data}")
+            continue  # Ungültige Eingabe, warte auf die nächste Nachricht
+
+def run_server(local_ip, player_number, local_addr):
     player_addr = []
     
     # Server starten
@@ -177,7 +169,7 @@ def start_server(local_ip, player_number, local_addr):
                 player_addr.append(addr[0])
                 print(f"{len(player_addr)}/{player_number} verbunden")
                 senden(addr[0], f"F{len(player_addr)-1}")
-                senden(addr[0], f"M{map_data}")
+                senden(addr[0], f"M{Map}")
             
         print(f"\\n\rAlle {player_number} Spieler verbunden!")
 
@@ -186,16 +178,12 @@ def start_server(local_ip, player_number, local_addr):
             for addresse in player_addr:
                 senden(addresse)
 
-
-
-
 if __name__ == "__main__":
     # Server Setup
-
     local_ip = input("Server IP (default: 172.20.10.14): ") or "192.168.0.102"
     player_number = int(input("Anzahl der Spieler -> ") or "2")
     port = int(input("Port (default: 4444): ") or "4444")
     
     local_addr = (local_ip, port)
     
-    start_server(local_ip, player_number, local_addr)
+    run_server(local_ip, player_number, local_addr)
