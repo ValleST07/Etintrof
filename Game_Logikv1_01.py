@@ -178,8 +178,8 @@ def run_server(local_ip, player_number, local_addr):
             if addr[0] not in player_addr:
                 player_addr.append(addr[0])
                 print(f"{len(player_addr)}/{player_number} verbunden")
-                senden(addr[0], f"F{len(player_addr)-1}")
                 senden(addr[0], f"M{Map}")
+                senden(addr[0], f"P{len(player_addr)-1}")
             
         print(f"\\n\rAlle {player_number} Spieler verbunden!")
 
