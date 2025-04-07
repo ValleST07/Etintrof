@@ -10,13 +10,12 @@ def get_wlan_ip():
                     return addr.address
     print("WLAN interface not found")
 
-
-def receive():
+def receive(length:int):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind(local_addr)
 
         while True:
-            data, addr = sock.recvfrom(1024)
+            data, addr = sock.recvfrom(length)
             if not data:
                 break
             data=data.decode('utf-8').strip()

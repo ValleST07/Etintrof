@@ -26,10 +26,10 @@ healthbarHeigth=10
 healthbarDistFromPlayer=40
 
 #server_ip=LoginScreen.get_IP()
-server_ip='192.168.0.102'
+server_ip='172.20.10.6'
 server_addr=(server_ip, 4444)
 Map=[]
-PLAYER = 0 # 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
+PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
 
 #               FLOOR           WALL        WATER
 MAP_COLORS=[(237, 157, 108), (133,64,33), (29,152,221)]
@@ -135,17 +135,22 @@ def sendInputs():
     sendToServer.transmit(server_addr, f"{PLAYER};{mov_direction};{angle};{mouse}")
 
 def handleReceivedData():
-    data=sendToServer.receive()
     global PLAYER
     global PLAYER_POSITIONS
     global PLAYER_ANGLES
     global Map
-    if (data[0]=='F'):
+
+    if not Map:#first frame (map frame):
+        data=sendToServer.receive(10000)
+    else:
+        data=sendToServer.receive(1024)
+    
+    if (data[0]=='M'):
+        Map=ast.literal_eval(data[1:])
+        return
+    elif (data[0]=='P'):
         PLAYER=int(data[1])
         print(f"PlayerNum={PLAYER}")
-        return
-    elif (data[1]=='M'):
-        Map=ast.literal_eval(data[1:])
         return
     dataList=data.split('*')
     PLAYER_POSITIONS=ast.literal_eval(dataList[0])
@@ -165,16 +170,14 @@ is_running = True
 count=0
 while is_running:
     count+=1
-    try:
-        if Map[0][0]:
-            drawGrid()
-            drawPlayer()
-            drawProjectile()
-            CamView()
-            sendInputs()
-            handleReceivedData()
-    except:
-        handleReceivedData()
+    sendInputs()
+    handleReceivedData()
+    if Map:
+        drawGrid()
+        drawPlayer()
+        drawProjectile()
+        CamView()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
