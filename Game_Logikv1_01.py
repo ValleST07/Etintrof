@@ -1,5 +1,15 @@
 import socket
 import random
+import psutil
+
+def get_wlan_ip():
+    for interface, addrs in psutil.net_if_addrs().items():
+        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:  # Adjust for your OS naming
+            for addr in addrs:
+                if addr.family == socket.AF_INET:  # IPv4 address
+                    print(f"{interface}: {addr.address}")
+                    return addr.address
+    print("WLAN interface not found")
 
 def generate_map(width=50, height=50):
     # Create empty map filled with floors (0)
@@ -180,10 +190,10 @@ def run_server(local_ip, player_number, local_addr):
 
 if __name__ == "__main__":
     # Server Setup
-    local_ip = input("Server IP (default: 172.20.10.14): ") or "192.168.0.102"
+    local_ip = get_wlan_ip()
     player_number = int(input("Anzahl der Spieler -> ") or "2")
-    port = int(input("Port (default: 4444): ") or "4444")
-    
+    #port = int(input("Port (default: 4444): ") or "4444")
+    port=4444
     local_addr = (local_ip, port)
     
     run_server(local_ip, player_number, local_addr)
