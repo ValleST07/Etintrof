@@ -26,7 +26,7 @@ healthbarHeigth=10
 healthbarDistFromPlayer=40
 
 #server_ip=LoginScreen.get_IP()
-server_ip='172.20.10.6'
+server_ip='192.168.137.29'
 server_addr=(server_ip, 4444)
 Map=[]
 PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
@@ -38,9 +38,9 @@ MAP_COLORS=[(237, 157, 108), (133,64,33), (29,152,221)]
 PLAYER_COLORS=[(255,0,0), (0,255,0), (255,255,0), (0,0,0)]
 
 #                   RED     GREEN    YELLOW   BLACK
-PLAYER_POSITIONS=[[500,500],[100,50],[100,100],[200,200]]
-PROJECTILE_POSITIONS=[]
-PLAYER_LIFES=[50,100,100,100]
+PLAYER_POSITIONS=[[10000,10000],[10000,10000],[10000,10000],[10000,10000]]
+BULLET_POSITIONS=[]
+PLAYER_HEALTH=[100,100,100,100]
 #in RADIANT!!!!!!!!!!!!!!!!!
 PLAYER_ANGLES=[0,0,0,0]
 
@@ -100,7 +100,7 @@ def drawPlayer():
 
 def drawHealthbar():
     for i in range(len(PLAYER_POSITIONS)):
-        life=PLAYER_LIFES[i]
+        life=PLAYER_HEALTH[i]
         backgroundRect = pygame.Rect(PLAYER_POSITIONS[i][0] - healthbarWidth/2, PLAYER_POSITIONS[i][1] - healthbarDistFromPlayer-healthbarHeigth/2, healthbarWidth, healthbarHeigth)
         pygame.draw.rect(SURFACE, (150,150,150), backgroundRect)
 
@@ -116,8 +116,8 @@ def drawHealthbar():
         pygame.draw.rect(SURFACE, color, foregroundRect)
 
 def drawProjectile():
-    for i in range(len(PROJECTILE_POSITIONS)):
-        pygame.draw.circle(SURFACE, (90,90,90), PROJECTILE_POSITIONS[i], projectilesize)
+    for i in range(len(BULLET_POSITIONS)):
+        pygame.draw.circle(SURFACE, (90,90,90), BULLET_POSITIONS[i], projectilesize)
 
 def CamView():
     cam_x=PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
@@ -138,12 +138,11 @@ def handleReceivedData():
     global PLAYER
     global PLAYER_POSITIONS
     global PLAYER_ANGLES
+    global BULLET_POSITIONS
+    global PLAYER_HEALTH
     global Map
-
-    if not Map:#first frame (map frame):
-        data=sendToServer.receive(10000)
-    else:
-        data=sendToServer.receive(1024)
+    
+    data=sendToServer.receive(10000)
     
     if (data[0]=='M'):
         Map=ast.literal_eval(data[1:])
@@ -158,6 +157,8 @@ def handleReceivedData():
     for i in range(4):
         if i != PLAYER:
             PLAYER_ANGLES[i]=ast.literal_eval(dataList[1])[i]
+    BULLET_POSITIONS=ast.literal_eval(dataList[2])
+    PLAYER_HEALTH=ast.literal_eval(dataList[3])
 
 pygame.init()
 
