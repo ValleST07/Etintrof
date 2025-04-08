@@ -1,6 +1,11 @@
 import socket
 import random
 import psutil
+import time
+import BulletObject
+import math
+
+ReadyToShot=True
 
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
@@ -55,6 +60,8 @@ Map= generate_map()
 
 player_position = [[100, 100], [100, 2300], [2300, 100], [2300, 2300]]
 player_angle=[0,0,0,0]
+player_health=[100,100,100,100]
+OBullets=[]
 
 def parse_input(data):
     """Parst die Eingabe des Clients und gibt sie als Dictionary zurück."""
@@ -79,19 +86,34 @@ def senden(addr, daten=None):
     if daten:
         sock.sendto(bytes(daten,"utf-8"),(addr,4444))
         return
-    data= bytes(f"{player_position}*{player_angle}","utf-8")
+    bullet_position=[]
+    for i in OBullets:
+        bullet_position.append(i.get_position())
+    data= bytes(f"{player_position}*{player_angle}*{bullet_position}*{player_health}","utf-8")
     sock.sendto(data,(addr,4444))
     #print(f"Gesendete Daten: {data}")
 
-def Check_Collision(pos):
+def Check_Collision(pos, isPlayer=True):#True=keine Collision
     #block size 48
+    #player size 19
     if pos[0]>2399 or pos[0]<0 or pos[1]>2399 or pos[1]<0:
         return False 
     try:
-        if Map[int(pos[1]/48)] [int(pos[0]/48)] == 0:
-            return True
-        else:
-            return False
+        if isPlayer==1: #Collision für Spieler
+            if Map[int(pos[1]/48)] [int(pos[0]/48)] == 0:
+                return True
+            else:
+                return False
+        else: #Collision für Bullet
+            if Map[int(pos[1]/48)] [int(pos[0]/48)] == 0 or Map[int(pos[1]/48)] [int(pos[0]/48)] == 2:
+                #check for player
+                for player_num,playerPos in enumerate(player_position):
+                    if (pos[0]>playerPos[0]-19 and pos[0]<playerPos[0]+19 and pos[1]>playerPos[1]-19 and pos[1]<playerPos[1]+19): #Check for player collision
+                        player_health[player_num]-=10
+                        return False
+                return True
+            else:
+                return False
     except:
         return False
 
@@ -131,20 +153,31 @@ def Bewegen(player_num, direction):
 
     player_position[player_num] = current_position
 
-def Shot(player_num, positions):
-    """Prüfen ob ein spieler getroffen und die monition anzeigen"""
-    
-    return None
+def Shot(player_num):
+    global OBullets
+    global player_angle
+    global player_position
+    x=player_position[player_num][0]+ math.cos(player_angle[player_num]) * 25
+    y=player_position[player_num][1]+ math.sin(player_angle[player_num]) * 25
+    OBullets.append(BulletObject.Bullet([x,y], player_angle[player_num]))
 
 def process_movement(player_num, direction, angle, mouse):
-    """Verarbeitet die Eingabe des Spielers (Richtung, Winkel, Maus)."""
-    global player_angle
+    global ReadyToShot
+    global OBullets
     player_angle[player_num]=float(angle)
     if direction != "8":
         Bewegen(player_num, direction)
 
-    if mouse != "0":
-        Shot(player_num, player_position)
+    if mouse != "0" and ReadyToShot:
+        ReadyToShot=False
+        Shot(player_num)
+    elif (mouse =="0"):
+        ReadyToShot=True
+
+    #move Bullets
+    for i in OBullets:
+        i.move()
+    OBullets = [i for i in OBullets if Check_Collision(i.get_position(), False)] # Lösch Bullet wenn Kollison
 
 def handle_player(s):
     global player_position
@@ -179,6 +212,7 @@ def run_server(local_ip, player_number, local_addr):
                 player_addr.append(addr[0])
                 print(f"{len(player_addr)}/{player_number} verbunden")
                 senden(addr[0], f"M{Map}")
+                time.sleep(0.1)
                 senden(addr[0], f"P{len(player_addr)-1}")
             
         print(f"\\n\rAlle {player_number} Spieler verbunden!")
