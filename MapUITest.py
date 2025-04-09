@@ -25,8 +25,11 @@ healthbarWidth=70
 healthbarHeigth=10
 healthbarDistFromPlayer=40
 
+IsSpectating=False
+SPECTATING_INDEX=0
+
 #server_ip=LoginScreen.get_IP()
-server_ip='192.168.137.29'
+server_ip='192.168.137.138'
 server_addr=(server_ip, 4444)
 Map=[]
 PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
@@ -61,6 +64,53 @@ dirTo8Way = {
     (-1, 1): 5,   # Down-Left
     (-1, -1): 7,  # Up-Left
 }
+
+def spectate():
+    global PLAYER
+    global SPECTATING_INDEX
+    playersavailable = [i for i in range(len(PLAYER_POSITIONS)) if PLAYER_HEALTH[i] > 0]
+    PLAYER=playersavailable[SPECTATING_INDEX]
+    text=font.render(f"Spectating Player {PLAYER}", True, (255,255,255))
+    SCREEN.blit(text, (10, 10))
+    text2=font.render(f"Press SPACE to change Player", True, (255,255,255))
+    SCREEN.blit(text2, (10, 50))
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                if SPECTATING_INDEX<len(playersavailable)-1:
+                    SPECTATING_INDEX+=1
+                else:
+                    SPECTATING_INDEX=0
+
+def DeathScreen():
+    global IsSpectating
+    text=font.render(f"YOU DIED!", True, (255,50,50))
+    text2=font.render(f"Press S to Spectate or Q to Quit", True, (255,255,255))
+    SCREEN.blit(text, (370, 350))
+    SCREEN.blit(text2, (220, 400))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
+                if event.key == pygame.K_s:
+                    IsSpectating=True
+                    return
+
+def WinScreen():
+    text=font.render(f"YOU WON!", True, (50,255,50))
+    SCREEN.blit(text, (300, 350))
+    #new game possible
+
+def drawUI():
+    PlayersDead=PLAYER_HEALTH.count(0)
+    text=font.render(f"{len(PLAYER_POSITIONS)-PlayersDead}/{len(PLAYER_POSITIONS)} Players Alive", True, (255,255,255))
+    SCREEN.blit(text, (600, 10))
 
 def drawGrid():
     for x in range(0, MAP_WIDTH, blocksizeX):
@@ -153,15 +203,18 @@ def handleReceivedData():
         return
     dataList=data.split('*')
     PLAYER_POSITIONS=ast.literal_eval(dataList[0])
-    #PLAYER_ANGLES=ast.literal_eval(dataList[1])
-    for i in range(4):
-        if i != PLAYER:
-            PLAYER_ANGLES[i]=ast.literal_eval(dataList[1])[i]
+    #wenn nicht spectating, dann nur eigene angle
+    if not IsSpectating:
+        for i,_ in enumerate(PLAYER_POSITIONS):
+            if i != PLAYER:
+                PLAYER_ANGLES[i]=ast.literal_eval(dataList[1])[i]
+    else:
+        PLAYER_ANGLES=ast.literal_eval(dataList[1])
     BULLET_POSITIONS=ast.literal_eval(dataList[2])
     PLAYER_HEALTH=ast.literal_eval(dataList[3])
 
 pygame.init()
-
+font=pygame.font.SysFont(None, 36)
 pygame.display.set_caption('Etintrof')
 SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was man sieht; teil der Map; mit zoom
 SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
@@ -171,13 +224,21 @@ is_running = True
 count=0
 while is_running:
     count+=1
-    sendInputs()
+    if not IsSpectating:
+        sendInputs()
     handleReceivedData()
     if Map:
         drawGrid()
         drawPlayer()
         drawProjectile()
         CamView()
+        drawUI()
+    
+    if PLAYER_HEALTH[PLAYER] == 0 and not IsSpectating:
+        DeathScreen()
+    
+    if IsSpectating:
+        spectate()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
