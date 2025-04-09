@@ -5,8 +5,6 @@ import time
 import BulletObject
 import math
 
-ReadyToShot=True
-
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
         if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:  # Adjust for your OS naming
@@ -56,11 +54,12 @@ def generate_map(width=50, height=50):
             y = max(1, min(height-2, y + dy))
     
     return game_map
-Map= generate_map()
+Map=generate_map()
 
-player_position = [[100, 100], [100, 2300], [2300, 100], [2300, 2300]]
-player_angle=[0,0,0,0]
-player_health=[100,100,100,100]
+player_position = []
+player_angle=[]
+player_health=[]
+player_readyToShoot=[]
 OBullets=[]
 
 def parse_input(data):
@@ -110,6 +109,8 @@ def Check_Collision(pos, isPlayer=True):#True=keine Collision
                 for player_num,playerPos in enumerate(player_position):
                     if (pos[0]>playerPos[0]-19 and pos[0]<playerPos[0]+19 and pos[1]>playerPos[1]-19 and pos[1]<playerPos[1]+19): #Check for player collision
                         player_health[player_num]-=10
+                        if player_health[player_num]==0: #STERBEN
+                            player_position[player_num]=[100000000,100000000]
                         return False
                 return True
             else:
@@ -153,7 +154,7 @@ def Bewegen(player_num, direction):
 
     player_position[player_num] = current_position
 
-def Shot(player_num):
+def Shoot(player_num):
     global OBullets
     global player_angle
     global player_position
@@ -162,17 +163,17 @@ def Shot(player_num):
     OBullets.append(BulletObject.Bullet([x,y], player_angle[player_num]))
 
 def process_movement(player_num, direction, angle, mouse):
-    global ReadyToShot
+    global player_readyToShoot
     global OBullets
     player_angle[player_num]=float(angle)
     if direction != "8":
         Bewegen(player_num, direction)
 
-    if mouse != "0" and ReadyToShot:
-        ReadyToShot=False
-        Shot(player_num)
+    if mouse != "0" and player_readyToShoot[player_num]:
+        player_readyToShoot[player_num]=False
+        Shoot(player_num)
     elif (mouse =="0"):
-        ReadyToShot=True
+        player_readyToShoot[player_num]=True
 
     #move Bullets
     for i in OBullets:
@@ -197,6 +198,10 @@ def handle_player(s):
             continue  # Ungültige Eingabe, warte auf die nächste Nachricht
 
 def run_server(local_ip, player_number, local_addr):
+    global player_position
+    global player_angle
+    global player_health
+    global player_readyToShoot
     player_addr = []
     
     # Server starten
@@ -204,7 +209,27 @@ def run_server(local_ip, player_number, local_addr):
         s.bind(local_addr)
         print(f"Server startet auf {local_ip}: {local_addr[1]} ...")
         print(f"Warte auf {player_number} Spieler...")
-
+        match(player_number):
+            case 1:
+                player_position=[[100,100]]
+                player_angle=[0]
+                player_health=[100]
+                player_readyToShoot=[True]
+            case 2:
+                player_position=[[100,100],[100,2300]]
+                player_angle=[0,0]
+                player_health=[100,100]
+                player_readyToShoot=[True,True]
+            case 3:
+                player_position=[[100,100],[100,2300],[2300,100]]
+                player_angle=[0,0,0]
+                player_health=[100,100,100]
+                player_readyToShoot=[True,True,True]
+            case 4:
+                player_position=[[100,100],[100,2300],[2300,100],[2300,2300]]
+                player_angle=[0,0,0,0]
+                player_health=[100,100,100,100]
+                player_readyToShoot=[True,True,True,True]
     
         while len(player_addr)<player_number:
             data, addr = s.recvfrom(1024)
