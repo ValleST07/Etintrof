@@ -7,7 +7,8 @@ import math
 
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
-        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:  # Adjust for your OS naming
+        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:#WLAN
+        #if "10"in interface:#HOTSPOT
             for addr in addrs:
                 if addr.family == socket.AF_INET:  # IPv4 address
                     print(f"{interface}: {addr.address}")
