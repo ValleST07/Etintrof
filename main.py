@@ -1,37 +1,108 @@
 import subprocess
-import os
+import sys
+import pygame
+from pygame import Rect
+
+# PyGame initialisieren
+pygame.init()
+screen = pygame.display.set_mode((400, 300))
+pygame.display.set_caption("Branch Selector")
+font = pygame.font.Font(None, 36)
+clock = pygame.time.Clock()
+
+# Farben
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 120, 215)
+
+# Buttons
+server_button = Rect(100, 100, 200, 50)
+ui_button = Rect(100, 180, 200, 50)
 
 def run_script(branch, script_name):
     try:
-        # Prüfe, ob wir in einem Git-Repo sind
-        subprocess.run(["git", "rev-parse", "--git-dir"], check=True, capture_output=True)
-        
-        # Wechsle Branch
-        subprocess.run(["git", "checkout", branch], check=True)
-        
-        # Starte das Skript
-        subprocess.run(["python", script_name], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Fehler: {e.stderr.decode().strip()}")
-    finally:
-        # Zurück zu main (falls Git-Repo vorhanden)
+        # Prüfen ob wir in einem Git-Repo sind
         try:
-            subprocess.run(["git", "checkout", "main"], check=True)
+            subprocess.run(["git", "rev-parse", "--git-dir"], 
+                         check=True, 
+                         capture_output=True)
+        except subprocess.CalledProcessError:
+            print("Achtung: Kein Git-Repository erkannt!")
+            return False
+            
+        # PyGame sauber beenden
+        pygame.display.quit()
+        
+        # Branch wechseln und Skript starten
+        subprocess.run(["git", "checkout", branch], check=True)
+        subprocess.run([sys.executable, script_name], check=True)
+        return True
+        
+    except Exception as e:
+        print(f"Fehler: {str(e)}")
+        return False
+    finally:
+        # Immer versuchen zurück zu main zu wechseln
+        try:
+            subprocess.run(["git", "checkout", "main"])
         except:
-            pass  # Falls kein Git-Repo, ignoriere
+            pass
+
+def draw_menu():
+    screen.fill(WHITE)
+    
+    # Titel
+    title = font.render("Wähle einen Modus", True, BLACK)
+    screen.blit(title, (100, 50))
+    
+    # Buttons zeichnen
+    pygame.draw.rect(screen, BLUE, server_button)
+    pygame.draw.rect(screen, BLUE, ui_button)
+    
+    # Button Text
+    server_text = font.render("Server", True, WHITE)
+    ui_text = font.render("UI", True, WHITE)
+    
+    screen.blit(server_text, (server_button.x + 70, server_button.y + 10))
+    screen.blit(ui_text, (ui_button.x + 85, ui_button.y + 10))
+    
+    pygame.display.flip()
 
 def main():
-    print("Welches Programm möchtest du starten?")
-    print("1 - Server")
-    print("2 - Client")
-    choice = input("Gib deine Auswahl ein (1 oder 2): ")
-
-    if choice == "1":
-        run_script("server", "server.py")
-    elif choice == "2":
-        run_script("UI", "MapUITest.py")
-    else:
-        print("Ungültige Eingabe. Bitte wähle 1 oder 2.")
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                
+                if server_button.collidepoint(mouse_pos):
+                    if run_script("server", "server.py"):
+                        running = False
+                    else:
+                        # Bei Fehler neu initialisieren
+                        pygame.init()
+                        screen = pygame.display.set_mode((400, 300))
+                        
+                elif ui_button.collidepoint(mouse_pos):
+                    if run_script("UI", "MapUITest.py"):
+                        running = False
+                    else:
+                        pygame.init()
+                        screen = pygame.display.set_mode((400, 300))
+        
+        try:
+            draw_menu()
+        except pygame.error:
+            # Falls Display verloren, neu initialisieren
+            pygame.init()
+            screen = pygame.display.set_mode((400, 300))
+            continue
+            
+        clock.tick(60)
 
 if __name__ == "__main__":
     main()
+    pygame.quit()
