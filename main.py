@@ -53,20 +53,14 @@ def run_script(branch, script_name):
         process = subprocess.Popen([sys.executable, script_name], cwd=project_dir)
 
         process.wait()
-
-        print(f"[Info] Prozess beendet mit Code: {process.returncode}")
         return True
 
     except subprocess.CalledProcessError as e:
-        print(f"[Fehler] {e}")
         return False
 
     finally:
-        try:
-            subprocess.run(["git", "checkout", "main"], check=True, cwd=project_dir)
-            print("[Info] Zurück zu main gewechselt ✅")
-        except Exception as e:
-            print(f"[Warnung] Konnte nicht zurück zu main: {e}")
+        subprocess.run(["git", "checkout", "main"], check=True, cwd=project_dir)
+
 
 def draw_menu():
     screen.fill(WHITE)
@@ -88,30 +82,27 @@ def draw_menu():
 
     pygame.display.flip()
 
-def main():
-    try:
-        running = True
-        while running:
-            draw_menu()
+try:
+    running = True
+    while running:
+        draw_menu()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
 
-                    if server_button.collidepoint(mouse_pos):
-                        if run_script("server", "server.py"):
-                            running = False
+                if server_button.collidepoint(mouse_pos):
+                    if run_script("server", "server.py"):
+                        running = False
 
-                    elif ui_button.collidepoint(mouse_pos):
-                        if run_script("UI", "MapUITest.py"):
-                            running = False
+                elif ui_button.collidepoint(mouse_pos):
+                    if run_script("UI", "MapUITest.py"):
+                        running = False
 
-            clock.tick(60)
-    finally:
-        cleanup()
+        clock.tick(60)
+finally:
+    cleanup()
 
-if __name__ == "__main__":
-    main()
