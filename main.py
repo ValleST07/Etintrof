@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 import pygame
 from pygame import Rect
 import signal
@@ -38,18 +39,21 @@ def signal_handler(sig, frame):
 # Strg+C Signalhandler
 signal.signal(signal.SIGINT, signal_handler)
 
+
 def run_script(branch, script_name):
     try:
+        project_dir = os.path.dirname(os.path.abspath(__file__))
+
         # Sicherstellen, dass wir im Git-Repo sind
-        subprocess.run(["git", "rev-parse", "--git-dir"], check=True, capture_output=True)
+        subprocess.run(["git", "rev-parse", "--git-dir"], check=True, capture_output=True, cwd=project_dir)
 
         pygame.display.quit()  # GUI schließen
 
         # Branch wechseln
-        subprocess.run(["git", "checkout", branch], check=True)
+        subprocess.run(["git", "checkout", branch], check=True, cwd=project_dir)
 
-        # Script ausführen – aber Fehler selber abfangen
-        process = subprocess.run([sys.executable, script_name])
+        # Script starten
+        process = subprocess.run([sys.executable, os.path.join(project_dir, script_name)], cwd=project_dir)
         print(f"[Info] Rückgabecode von {script_name}: {process.returncode}")
 
         return True
@@ -59,9 +63,9 @@ def run_script(branch, script_name):
         return False
 
     finally:
-        # Hier wird IMMER zurückgewechselt, auch bei Strg+C
         print("[Info] Wechsle zurück zu main...")
-        subprocess.run(["git", "checkout", "main"], stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "checkout", "main"], stderr=subprocess.DEVNULL, cwd=project_dir)
+
 
 def draw_menu():
     screen.fill(WHITE)
