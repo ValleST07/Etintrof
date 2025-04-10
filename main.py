@@ -16,7 +16,7 @@ WIDTH, HEIGHT = 400, 300
 # Initialisierung
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Branch Selector")
+pygame.display.set_caption("Game Selector")
 font = pygame.font.Font(None, 36)
 clock = pygame.time.Clock()
 
@@ -75,7 +75,7 @@ def draw_menu():
 
     # Texte
     server_text = font.render("Server", True, WHITE)
-    ui_text = font.render("UI", True, WHITE)
+    ui_text = font.render("Client", True, WHITE)
 
     screen.blit(server_text, server_text.get_rect(center=server_button.center))
     screen.blit(ui_text, ui_text.get_rect(center=ui_button.center))
