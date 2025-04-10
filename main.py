@@ -1,77 +1,128 @@
-import pygame
 import subprocess
 import sys
+import pygame
+from pygame import Rect
+import signal
+
+# PyGame initialisieren
+pygame.init()
+screen = pygame.display.set_mode((400, 300))
+pygame.display.set_caption("Branch Selector")
+font = pygame.font.Font(None, 36)
+clock = pygame.time.Clock()
 
 # Farben
 WHITE = (255, 255, 255)
-GRAY = (200, 200, 200)
-DARK_GRAY = (100, 100, 100)
 BLACK = (0, 0, 0)
-
-# Fenstergröße
-WIDTH, HEIGHT = 400, 300
-
-# Buttons definieren
-class Button:
-    def __init__(self, text, rect, callback):
-        self.text = text
-        self.rect = pygame.Rect(rect)
-        self.callback = callback
-        self.font = pygame.font.SysFont(None, 36)
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, GRAY, self.rect)
-        pygame.draw.rect(screen, DARK_GRAY, self.rect, 2)
-        text_surf = self.font.render(self.text, True, BLACK)
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        screen.blit(text_surf, text_rect)
-
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
-            self.callback()
-
-# Aktionen
-def starte_server():
-    pygame.quit()
-    subprocess.run(["python", "server.py"])
-    sys.exit()
-
-def starte_client():
-    pygame.quit()
-    subprocess.run(["python", "MapUITest.py"])
-    sys.exit()
-
-
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Auswahlmenü")
-
-font = pygame.font.SysFont(None, 40)
-title_text = font.render("Was möchtest du starten?", True, BLACK)
-title_rect = title_text.get_rect(center=(WIDTH // 2, 50))
+BLUE = (0, 120, 215)
 
 # Buttons
-buttons = [
-    Button("Server starten", (100, 100, 200, 50), starte_server),
-    Button("Client starten", (100, 170, 200, 50), starte_client)
-]
+server_button = Rect(100, 100, 200, 50)
+ui_button = Rect(100, 180, 200, 50)
 
-# Hauptloop
-running = True
-while running:
+def cleanup():
+    """Sicher zurück zum main-Branch wechseln und PyGame beenden"""
+    try:
+        subprocess.run(["git", "checkout", "main"], stderr=subprocess.DEVNULL)
+    except:
+        pass
+    pygame.quit()
+    sys.exit(0)
+
+def signal_handler(sig, frame):
+    """Handler für Strg+C"""
+    cleanup()
+
+# Signal-Handler registrieren
+signal.signal(signal.SIGINT, signal_handler)
+
+def run_script(branch, script_name):
+    try:
+        # Prüfen ob wir in einem Git-Repo sind
+        try:
+            subprocess.run(["git", "rev-parse", "--git-dir"], 
+                         check=True, 
+                         capture_output=True)
+        except subprocess.CalledProcessError:
+            print("Achtung: Kein Git-Repository erkannt!")
+            return False
+            
+        # PyGame sauber beenden
+        pygame.display.quit()
+        
+        # Branch wechseln und Skript starten
+        subprocess.run(["git", "checkout", branch], check=True)
+        subprocess.run([sys.executable, script_name], check=True)
+        return True
+        
+    except Exception as e:
+        print(f"Fehler: {str(e)}")
+        return False
+    finally:
+        cleanup()
+
+def draw_menu():
     screen.fill(WHITE)
-    screen.blit(title_text, title_rect)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        for button in buttons:
-            button.handle_event(event)
-
-    for button in buttons:
-        button.draw(screen)
-
+    
+    # Titel
+    title = font.render("Wähle einen Modus", True, BLACK)
+    screen.blit(title, (100, 50))
+    
+    # Buttons zeichnen
+    pygame.draw.rect(screen, BLUE, server_button)
+    pygame.draw.rect(screen, BLUE, ui_button)
+    
+    # Button Text
+    server_text = font.render("Server", True, WHITE)
+    ui_text = font.render("UI", True, WHITE)
+    
+    screen.blit(server_text, (server_button.x + 70, server_button.y + 10))
+    screen.blit(ui_text, (ui_button.x + 85, ui_button.y + 10))
+    
     pygame.display.flip()
 
-pygame.quit()
+def main():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                
+                if server_button.collidepoint(mouse_pos):
+                    if run_script("server", "server.py"):
+                        running = False
+                    else:
+                        # Bei Fehler neu initialisieren
+                        pygame.init()
+                        screen = pygame.display.set_mode((400, 300))
+                        
+                elif ui_button.collidepoint(mouse_pos):
+                    if run_script("UI", "MapUITest.py"):
+                        running = False
+                    else:
+                        pygame.init()
+                        screen = pygame.display.set_mode((400, 300))
+        
+        try:
+            draw_menu()
+        except pygame.error:
+            # Falls Display verloren, neu initialisieren
+            pygame.init()
+            screen = pygame.display.set_mode((400, 300))
+            continue
+            
+        clock.tick(60)
+    
+    cleanup()
 
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        cleanup()
+    except Exception as e:
+        print(f"Unerwarteter Fehler: {str(e)}")
+        cleanup()
