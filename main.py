@@ -29,7 +29,7 @@ def main():
     if choice == "1":
         run_script("server", "server.py")
     elif choice == "2":
-        run_script("client", "client.py")
+        run_script("UI", "MapUITest.py")
     else:
         print("Ungültige Eingabe. Bitte wähle 1 oder 2.")
 
