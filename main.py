@@ -45,14 +45,23 @@ def run_script(branch, script_name):
 
         pygame.display.quit()  # GUI schließen
 
-        # Branch wechseln und Script starten
+        # Branch wechseln
         subprocess.run(["git", "checkout", branch], check=True)
-        subprocess.run([sys.executable, script_name], check=True)
+
+        # Script ausführen – aber Fehler selber abfangen
+        process = subprocess.run([sys.executable, script_name])
+        print(f"[Info] Rückgabecode von {script_name}: {process.returncode}")
+
         return True
 
     except subprocess.CalledProcessError as e:
         print(f"[Fehler] {e}")
         return False
+
+    finally:
+        # Hier wird IMMER zurückgewechselt, auch bei Strg+C
+        print("[Info] Wechsle zurück zu main...")
+        subprocess.run(["git", "checkout", "main"], stderr=subprocess.DEVNULL)
 
 def draw_menu():
     screen.fill(WHITE)
