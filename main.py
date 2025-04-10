@@ -41,21 +41,20 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def run_script(branch, script_name):
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+
     try:
-        project_dir = os.path.dirname(os.path.abspath(__file__))
-
-        # Sicherstellen, dass wir im Git-Repo sind
-        subprocess.run(["git", "rev-parse", "--git-dir"], check=True, capture_output=True, cwd=project_dir)
-
-        pygame.display.quit()  # GUI schließen
-
-        # Branch wechseln
+        subprocess.run(["git", "rev-parse", "--git-dir"], check=True, cwd=project_dir)
         subprocess.run(["git", "checkout", branch], check=True, cwd=project_dir)
+        print(f"[Info] Switched to branch '{branch}'")
 
-        # Script starten
-        process = subprocess.run([sys.executable, os.path.join(project_dir, script_name)], cwd=project_dir)
-        print(f"[Info] Rückgabecode von {script_name}: {process.returncode}")
+        pygame.display.quit()
 
+        process = subprocess.Popen([sys.executable, script_name], cwd=project_dir)
+
+        process.wait()
+
+        print(f"[Info] Prozess beendet mit Code: {process.returncode}")
         return True
 
     except subprocess.CalledProcessError as e:
@@ -63,9 +62,11 @@ def run_script(branch, script_name):
         return False
 
     finally:
-        print("[Info] Wechsle zurück zu main...")
-        subprocess.run(["git", "checkout", "main"], stderr=subprocess.DEVNULL, cwd=project_dir)
-
+        try:
+            subprocess.run(["git", "checkout", "main"], check=True, cwd=project_dir)
+            print("[Info] Zurück zu main gewechselt ✅")
+        except Exception as e:
+            print(f"[Warnung] Konnte nicht zurück zu main: {e}")
 
 def draw_menu():
     screen.fill(WHITE)
