@@ -102,7 +102,9 @@ def DeathScreen():
                     IsSpectating=True
                     return
 
-def WinScreen():
+def GameOverScreen():
+    #clear screen
+    SCREEN.fill((0, 0, 0))
     global Map
     global IsSpectating
     text=font.render(f"YOU WON!", True, (50,255,50))
@@ -117,9 +119,11 @@ def WinScreen():
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
+                    sendToServer.transmit(server_addr, f"EXIT")
                     pygame.quit()
                     exit()
                 if event.key == pygame.K_a:
+                    sendToServer.transmit(server_addr, f"AGAIN")
                     #reset server and play again
                     Map=[]
                     IsSpectating=False
@@ -259,8 +263,8 @@ while is_running:
     if IsSpectating:
         spectate()
     
-    if PLAYER_HEALTH.count(0)>=3 and PLAYER_HEALTH[PLAYER] > 0:
-        WinScreen()
+    if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH)-1:
+        GameOverScreen()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
