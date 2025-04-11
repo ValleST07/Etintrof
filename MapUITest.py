@@ -104,6 +104,7 @@ def DeathScreen():
 
 def WinScreen():
     global Map
+    global IsSpectating
     text=font.render(f"YOU WON!", True, (50,255,50))
     text2=font.render(f"Press A to play again or Q to Quit", True, (255,255,255))
     SCREEN.blit(text2, (220, 400))
@@ -257,6 +258,9 @@ while is_running:
     
     if IsSpectating:
         spectate()
+    
+    if PLAYER_HEALTH.count(0)>=3 and PLAYER_HEALTH[PLAYER] > 0:
+        WinScreen()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
