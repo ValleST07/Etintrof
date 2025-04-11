@@ -29,7 +29,7 @@ IsSpectating=False
 SPECTATING_INDEX=0
 
 #server_ip=LoginScreen.get_IP()
-server_ip='192.168.137.138'
+server_ip='192.168.137.1'
 server_addr=(server_ip, 4444)
 Map=[]
 PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
@@ -103,8 +103,26 @@ def DeathScreen():
                     return
 
 def WinScreen():
+    global Map
     text=font.render(f"YOU WON!", True, (50,255,50))
+    text2=font.render(f"Press A to play again or Q to Quit", True, (255,255,255))
+    SCREEN.blit(text2, (220, 400))
     SCREEN.blit(text, (300, 350))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
+                if event.key == pygame.K_a:
+                    #reset server and play again
+                    Map=[]
+                    IsSpectating=False
+                    return
     #new game possible
 
 def drawUI():
