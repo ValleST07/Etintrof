@@ -89,25 +89,19 @@ def DeathScreen():
     SCREEN.blit(text, (370, 350))
     SCREEN.blit(text2, (220, 400))
     pygame.display.update()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    pygame.quit()
-                    exit()
-                if event.key == pygame.K_s:
-                    IsSpectating=True
-                    return
+    delay(0.5)
+    IsSpectating=True
 
 def GameOverScreen():
-    #clear screen
-    SCREEN.fill((0, 0, 0))
     global Map
     global IsSpectating
-    text=font.render(f"YOU WON!", True, (50,255,50))
+    PLAYER_POSITIONS[PLAYER]=(1000000,1000000)
+    drawGrid()
+    drawPlayer()
+    drawProjectile()
+    CamView()
+    drawUI()
+    text=font.render(f"Game Over Player {PLAYER} WON!", True, (50,255,50))
     text2=font.render(f"Press A to play again or Q to Quit", True, (255,255,255))
     SCREEN.blit(text2, (220, 400))
     SCREEN.blit(text, (300, 350))
