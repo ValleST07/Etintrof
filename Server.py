@@ -7,8 +7,8 @@ import math
 
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
-        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:#WLAN
-        #if "10"in interface:#HOTSPOT
+        #if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:#WLAN
+        if "10"in interface:#HOTSPOT
             for addr in addrs:
                 if addr.family == socket.AF_INET:  # IPv4 address
                     print(f"{interface}: {addr.address}")
@@ -38,7 +38,7 @@ def generate_map(width=50, height=50):
             for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
                 nx, ny = x + dx, y + dy
                 if 0 < nx < width-1 and 0 < ny < height-1:
-                    game_map[ny][nx] = 1
+                    game_map[ny][nx] = 1    
     
     # Add water features
     for _ in range(random.randint(5, 10)):
@@ -55,13 +55,22 @@ def generate_map(width=50, height=50):
             y = max(1, min(height-2, y + dy))
     
     return game_map
-Map=generate_map()
 
-player_position = []
-player_angle=[]
-player_health=[]
-player_readyToShoot=[]
-OBullets=[]
+def Reset():
+    global Map
+    global player_position
+    global player_angle
+    global player_health
+    global player_readyToShoot
+    global OBullets
+
+    Map=generate_map()
+
+    player_position = []
+    player_angle=[]
+    player_health=[]
+    player_readyToShoot=[]
+    OBullets=[]
 
 def parse_input(data):
     """Parst die Eingabe des Clients und gibt sie als Dictionary zurück."""
@@ -198,62 +207,84 @@ def handle_player(s):
             print(f"Keine Eingabe von {addr}: {data}")
             continue  # Ungültige Eingabe, warte auf die nächste Nachricht
 
-def run_server(local_ip, player_number, local_addr):
+def run_server(s,local_ip, local_addr):
+    num_answers=0
     global player_position
     global player_angle
     global player_health
     global player_readyToShoot
+    global player_number
     player_addr = []
     
-    # Server starten
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(local_addr)
-        print(f"Server startet auf {local_ip}: {local_addr[1]} ...")
-        print(f"Warte auf {player_number} Spieler...")
-        match(player_number):
-            case 1:
-                player_position=[[100,100]]
-                player_angle=[0]
-                player_health=[100]
-                player_readyToShoot=[True]
-            case 2:
-                player_position=[[100,100],[100,2300]]
-                player_angle=[0,0]
-                player_health=[100,100]
-                player_readyToShoot=[True,True]
-            case 3:
-                player_position=[[100,100],[100,2300],[2300,100]]
-                player_angle=[0,0,0]
-                player_health=[100,100,100]
-                player_readyToShoot=[True,True,True]
-            case 4:
-                player_position=[[100,100],[100,2300],[2300,100],[2300,2300]]
-                player_angle=[0,0,0,0]
-                player_health=[100,100,100,100]
-                player_readyToShoot=[True,True,True,True]
-    
-        while len(player_addr)<player_number:
-            data, addr = s.recvfrom(1024)
-            if addr[0] not in player_addr:
-                player_addr.append(addr[0])
-                print(f"{len(player_addr)}/{player_number} verbunden")
-                senden(addr[0], f"M{Map}")
-                time.sleep(0.1)
-                senden(addr[0], f"P{len(player_addr)-1}")
-            
-        print(f"\\n\rAlle {player_number} Spieler verbunden!")
+    old_player_number=player_number
 
-        while True:
+    print(f"Server startet auf {local_ip}: {local_addr[1]} ...")
+    print(f"Warte auf {player_number} Spieler...")
+    match(player_number):
+        case 1:
+            player_position=[[100,100]]
+            player_angle=[0]
+            player_health=[100]
+            player_readyToShoot=[True]
+        case 2:
+            player_position=[[100,100],[100,2300]]
+            player_angle=[0,0]
+            player_health=[100,100]
+            player_readyToShoot=[True,True]
+        case 3:
+            player_position=[[100,100],[100,2300],[2300,100]]
+            player_angle=[0,0,0]
+            player_health=[100,100,100]
+            player_readyToShoot=[True,True,True]
+        case 4:
+            player_position=[[100,100],[100,2300],[2300,100],[2300,2300]]
+            player_angle=[0,0,0,0]
+            player_health=[100,100,100,100]
+            player_readyToShoot=[True,True,True,True]
+
+    while len(player_addr)<player_number:
+        data, addr = s.recvfrom(1024)
+        if addr[0] not in player_addr:
+            player_addr.append(addr[0])
+            print(f"{len(player_addr)}/{player_number} verbunden")
+            senden(addr[0], f"M{Map}")
+            time.sleep(0.1)
+            senden(addr[0], f"P{len(player_addr)-1}")
+        
+    print(f"\\n\rAlle {player_number} Spieler verbunden!")
+
+    while True:
+        if player_health.count(0)>=len(player_health)-1:
+            print("GAME OVER!")
+            print("NEUE Runde")
+            if num_answers<old_player_number:
+                data, addr = s.recvfrom(1024)
+                if not data:
+                    continue
+                data = data.decode('utf-8').strip()
+                if data=="EXIT":
+                    player_number-=1
+                    num_answers+=1
+                elif data=="AGAIN":
+                    num_answers+=1
+            else:
+                Reset()
+                return
+        else:
             handle_player(s)
-            for addresse in player_addr:
-                senden(addresse)
+        for addresse in player_addr:
+            senden(addresse)
 
 if __name__ == "__main__":
     # Server Setup
+    Reset()
     local_ip = get_wlan_ip()
     player_number = int(input("Anzahl der Spieler -> ") or "2")
     #port = int(input("Port (default: 4444): ") or "4444")
     port=4444
     local_addr = (local_ip, port)
-    
-    run_server(local_ip, player_number, local_addr)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.bind(local_addr)
+        while True:
+            run_server(s,local_ip, local_addr)
+            
