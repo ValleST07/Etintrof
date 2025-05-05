@@ -30,7 +30,7 @@ IsSpectating=False
 SPECTATING_INDEX=0
 
 #server_ip=LoginScreen.get_IP()
-server_ip='192.168.142.34'
+server_ip='192.168.142.43'
 server_addr=(server_ip, 4444)
 Map=[]
 PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
