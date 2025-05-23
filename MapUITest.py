@@ -99,7 +99,7 @@ def GameOverScreen():
     drawPlayer()
     CamView()
     text=font.render(f"Game Over Player {PLAYER} WON!", True, (50,255,50))
-    text2=font.render(f"Press A to play again or Q to Quit", True, (255,255,255))
+    text2=font.render(f"Press N to play again or Q to Quit", True, (255,255,255))
     SCREEN.blit(text2, (220, 400))
     SCREEN.blit(text, (300, 350))
     pygame.display.update()
@@ -110,11 +110,12 @@ def GameOverScreen():
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    sendToServer.transmit(server_addr, f"EXIT")
+                    sendToServer.transmit(server_addr, "EXIT")
                     pygame.quit()
                     exit()
-                if event.key == pygame.K_a:
-                    sendToServer.transmit(server_addr, f"AGAIN")
+                if event.key == pygame.K_n:
+                    print("AGAIN")
+                    sendToServer.transmit(server_addr, "AGAIN")
                     #reset server and play again
                     Map=[]
                     IsSpectating=False
