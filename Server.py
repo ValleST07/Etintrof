@@ -8,7 +8,7 @@ import math
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
         #if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:#WLAN
-        if "10"in interface:#HOTSPOT
+        if "10" in interface:#HOTSPOT
             for addr in addrs:
                 if addr.family == socket.AF_INET:  # IPv4 address
                     print(f"{interface}: {addr.address}")
@@ -56,34 +56,63 @@ def generate_map(width=50, height=50):
     
     return game_map
 
-def Reset():
+def Reset(player_addr,player_number=0):
+    print("+++++++++RESET+++++++++")
     global Map
     global player_position
     global player_angle
     global player_health
     global player_readyToShoot
     global OBullets
+    
+    if player_number!=0:
+        print("NEW MAP GEN")
+        Map=generate_map()
+        for add in player_addr:
+            print("add")
+            senden(add, f"M{Map}")
+    else:
+        Map=generate_map()
+    match(player_number):
+        case 1:
+            player_position=[[100,100]]
+            player_angle=[0]
+            player_health=[100]
+            player_readyToShoot=[True]
+        case 2:
+            player_position=[[100,100],[100,2300]]
+            player_angle=[0,0]
+            player_health=[100,100]
+            player_readyToShoot=[True,True]
+        case 3:
+            player_position=[[100,100],[100,2300],[2300,100]]
+            player_angle=[0,0,0]
+            player_health=[100,100,100]
+            player_readyToShoot=[True,True,True]
+        case 4:
+            player_position=[[100,100],[100,2300],[2300,100],[2300,2300]]
+            player_angle=[0,0,0,0]
+            player_health=[100,100,100,100]
+            player_readyToShoot=[True,True,True,True]
 
-    Map=generate_map()
-
-    player_position = []
-    player_angle=[]
-    player_health=[]
-    player_readyToShoot=[]
     OBullets=[]
 
 def parse_input(data):
     """Parst die Eingabe des Clients und gibt sie als Dictionary zurück."""
-
-    splited = data.split(";")
-    # Beispiel: "player:1; dir:9; angle:0; mouse:False"
-    player_num = int(splited[0])
-    
-    direction = splited[1]
-    angle = splited[2]
-    mouse = splited[3]
-    mouse = mouse[0]
-
+    try: 
+        splited = data.split(";")
+        # Beispiel: "player:1; dir:9; angle:0; mouse:False"
+        player_num = int(splited[0])
+        
+        direction = splited[1]
+        angle = splited[2]
+        mouse = splited[3]
+        mouse = mouse[0]
+    except:#Bei neuem Spiel
+        direction = 0
+        angle = 0
+        mouse = 0
+        mouse = 0
     #print(player_num,direction,angle,mouse)
     return (player_num,direction,angle,mouse)
 
@@ -220,6 +249,7 @@ def run_server(s,local_ip, local_addr):
 
     print(f"Server startet auf {local_ip}: {local_addr[1]} ...")
     print(f"Warte auf {player_number} Spieler...")
+    #Positions Vergabe
     match(player_number):
         case 1:
             player_position=[[100,100]]
@@ -241,7 +271,7 @@ def run_server(s,local_ip, local_addr):
             player_angle=[0,0,0,0]
             player_health=[100,100,100,100]
             player_readyToShoot=[True,True,True,True]
-
+    #Address zuweisung
     while len(player_addr)<player_number:
         data, addr = s.recvfrom(1024)
         if addr[0] not in player_addr:
@@ -254,22 +284,22 @@ def run_server(s,local_ip, local_addr):
     print(f"\\n\rAlle {player_number} Spieler verbunden!")
 
     while True:
-        if player_health.count(0)>=len(player_health)-1:
-            print("GAME OVER!")
-            print("NEUE Runde")
+        if player_health.count(0)>=len(player_health)-1: #nur einer am Leben
+            print(f"{num_answers}/{old_player_number} geantwortet")
+            data=0
             if num_answers<old_player_number:
                 data, addr = s.recvfrom(1024)
                 if not data:
                     continue
                 data = data.decode('utf-8').strip()
-                if data=="EXIT":
+                print(f"data:{data[0]}")
+                if data[0]=="E": #E EXIT
                     player_number-=1
-                    num_answers+=1
-                elif data=="AGAIN":
+                elif data[0]=="N": #N NEW GAME
                     num_answers+=1
             else:
-                Reset()
-                return
+                Reset(player_addr,player_number)
+                continue
         else:
             handle_player(s)
         for addresse in player_addr:
@@ -277,7 +307,7 @@ def run_server(s,local_ip, local_addr):
 
 if __name__ == "__main__":
     # Server Setup
-    Reset()
+    Reset(0,player_number=0)
     local_ip = get_wlan_ip()
     player_number = int(input("Anzahl der Spieler -> ") or "2")
     #port = int(input("Port (default: 4444): ") or "4444")
@@ -285,6 +315,4 @@ if __name__ == "__main__":
     local_addr = (local_ip, port)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.bind(local_addr)
-        while True:
-            run_server(s,local_ip, local_addr)
-            
+        run_server(s,local_ip, local_addr)
