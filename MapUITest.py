@@ -26,6 +26,7 @@ healthbarHeigth=10
 healthbarDistFromPlayer=40
 
 IsSpectating=False
+newGame=False
 SPECTATING_INDEX=0
 
 #server_ip=LoginScreen.get_IP()
@@ -89,12 +90,27 @@ def DeathScreen():
     SCREEN.blit(text, (370, 350))
     SCREEN.blit(text2, (220, 400))
     pygame.display.update()
-    delay(500)
-    IsSpectating=True
+    while True:
+        if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH) and not newGame:
+            GameOverScreen()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    sendToServer.transmit(server_addr, "E")
+                    pygame.quit()
+                    exit()
+                if event.key == pygame.K_s:
+                    print("Spectating")
+                    IsSpectating=True
+                    return
 
 def GameOverScreen():
     global Map
     global IsSpectating
+    global newGame
     PLAYER_POSITIONS[PLAYER]=(1000000,1000000)
     drawPlayer()
     CamView()
@@ -119,6 +135,7 @@ def GameOverScreen():
                     #reset server and play again
                     Map=[]
                     IsSpectating=False
+                    newGame=True
                     return
     #new game possible
 
@@ -237,7 +254,6 @@ SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zo
 
 is_running = True
 while is_running:
-    newGame=False
     if not IsSpectating:
         sendInputs()
     handleReceivedData()
@@ -254,9 +270,8 @@ while is_running:
     if IsSpectating and not newGame:
         spectate()
     
-    if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH)-1:
+    if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH) and not newGame:
         GameOverScreen()
-        newGame=True
         continue
     
     for event in pygame.event.get():
