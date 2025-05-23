@@ -1,9 +1,8 @@
 import LoginScreen
 import pygame
 from pygame.time import delay
-import socket
-import psutil
 import math
+import sendToServer
 import ast
 
 WINDOW_HEIGHT = 800
@@ -30,7 +29,7 @@ IsSpectating=False
 SPECTATING_INDEX=0
 
 #server_ip=LoginScreen.get_IP()
-server_ip='192.168.142.43'
+server_ip='192.168.137.1'
 server_addr=(server_ip, 4444)
 Map=[]
 PLAYER = -1 #-1=unassigned 0 = RED, 1=GREEN, 2=YELLOW, 3=BLACK
@@ -65,55 +64,6 @@ dirTo8Way = {
     (-1, 1): 5,   # Down-Left
     (-1, -1): 7,  # Up-Left
 }
-
-# Initialize socket connection
-sock = None
-local_addr = None
-
-def initialize_network():
-    global sock, local_addr
-    local_addr = (get_wlan_ip(), 4444)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(local_addr)
-    sock.setblocking(False)  # Make socket non-blocking
-    print(f"Local address: {local_addr}")
-
-def get_wlan_ip():
-    for interface, addrs in psutil.net_if_addrs().items():
-        if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:
-            for addr in addrs:
-                if addr.family == socket.AF_INET:  # IPv4 address
-                    print(f"{interface}: {addr.address}")
-                    return addr.address
-    print("WLAN interface not found")
-    return "127.0.0.1"  # Fallback to localhost if no WLAN found
-
-def receive(length: int):
-    global sock
-    try:
-        data, addr = sock.recvfrom(length)
-        if data:
-            data = data.decode('utf-8').strip()
-            return data
-    except BlockingIOError:
-        pass  # No data available
-    except Exception as e:
-        print(f"Error receiving data: {e}")
-    return None
-
-def transmit(data):
-    global sock
-    try:
-        data = bytes(f"{data},\n {local_addr}", "utf-8")
-        sock.sendto(data, server_addr)
-    except Exception as e:
-        print(f"Error transmitting data: {e}")
-
-def close_network():
-    global sock
-    if sock:
-        sock.close()
-        sock = None
 
 def spectate():
     global PLAYER
@@ -156,21 +106,20 @@ def GameOverScreen():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                close_network()
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    transmit("EXIT")
-                    close_network()
+                    sendToServer.transmit(server_addr, f"EXIT")
                     pygame.quit()
                     exit()
                 if event.key == pygame.K_a:
-                    transmit("AGAIN")
+                    sendToServer.transmit(server_addr, f"AGAIN")
                     #reset server and play again
                     Map=[]
                     IsSpectating=False
                     return
+    #new game possible
 
 def drawUI():
     PlayersDead=PLAYER_HEALTH.count(0)
@@ -190,18 +139,26 @@ def drawPlayer():
         angle_rad = PLAYER_ANGLES[i]
         x=PLAYER_POSITIONS[i][0]
         y=PLAYER_POSITIONS[i][1]
-        barrel_x1 = x + math.cos(angle_rad) * -5
+        # Define rectangle corners relative to (x, y)
+        barrel_x1 = x + math.cos(angle_rad) * -5  # Move inside the circle
         barrel_y1 = y + math.sin(angle_rad) * -5
+
+        # Barrel ending point (outside)
         barrel_x2 = x + math.cos(angle_rad) * (playerbarrelsizeX - 5)
         barrel_y2 = y + math.sin(angle_rad) * (playerbarrelsizeX - 5)
+
+        # Find perpendicular direction to create thickness
         perp_x = -math.sin(angle_rad) * (playerbarrelsizeY // 2)
         perp_y = math.cos(angle_rad) * (playerbarrelsizeY // 2)
+
+        # Define rectangle corners
         points = [
-            (barrel_x1 + perp_x, barrel_y1 + perp_y),
-            (barrel_x1 - perp_x, barrel_y1 - perp_y),
-            (barrel_x2 - perp_x, barrel_y2 - perp_y),
-            (barrel_x2 + perp_x, barrel_y2 + perp_y)
+            (barrel_x1 + perp_x, barrel_y1 + perp_y),  # Top-left
+            (barrel_x1 - perp_x, barrel_y1 - perp_y),  # Bottom-left
+            (barrel_x2 - perp_x, barrel_y2 - perp_y),  # Bottom-right
+            (barrel_x2 + perp_x, barrel_y2 + perp_y)  # Top-right
         ]
+
         pygame.draw.polygon(SURFACE, PLAYER_COLORS[i], points)
         drawHealthbar()
 
@@ -239,7 +196,7 @@ def sendInputs():
     mov_direction = dirTo8Way.get((x, y), 8) #8=keine bewegung
     angle=PLAYER_ANGLES[PLAYER]
     mouse=LMB
-    transmit(f"{PLAYER};{mov_direction};{angle};{mouse}")
+    sendToServer.transmit(server_addr, f"{PLAYER};{mov_direction};{angle};{mouse}")
 
 def handleReceivedData():
     global PLAYER
@@ -249,9 +206,7 @@ def handleReceivedData():
     global PLAYER_HEALTH
     global Map
     
-    data=receive(10000)
-    if not data:
-        return
+    data=sendToServer.receive(10000)
     
     if (data[0]=='M'):
         Map=ast.literal_eval(data[1:])
@@ -260,9 +215,9 @@ def handleReceivedData():
         PLAYER=int(data[1])
         print(f"PlayerNum={PLAYER}")
         return
-    
     dataList=data.split('*')
     PLAYER_POSITIONS=ast.literal_eval(dataList[0])
+    #wenn nicht spectating, dann nur eigene angle
     if not IsSpectating:
         for i,_ in enumerate(PLAYER_POSITIONS):
             if i != PLAYER:
@@ -272,23 +227,20 @@ def handleReceivedData():
     BULLET_POSITIONS=ast.literal_eval(dataList[2])
     PLAYER_HEALTH=ast.literal_eval(dataList[3])
 
-# Main game initialization
 pygame.init()
 font=pygame.font.SysFont(None, 36)
 pygame.display.set_caption('Etintrof')
-SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT))
-initialize_network()
+SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was man sieht; teil der Map; mit zoom
+SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
 is_running = True
-count=0
 
+count=0
 while is_running:
     count+=1
     if not IsSpectating:
         sendInputs()
     handleReceivedData()
-    
     if Map:
         drawGrid()
         drawPlayer()
@@ -310,8 +262,9 @@ while is_running:
             is_running = False
         if event.type == pygame.MOUSEMOTION:
             mousex, mousey = event.pos
+            # build a vector between player position and mouse position
             delta = (mousex - WINDOW_WIDTH/2, mousey - WINDOW_HEIGHT/2)
-            PLAYER_ANGLES[PLAYER] = math.atan2(delta[1],delta[0])
+            PLAYER_ANGLES[PLAYER] =  math.atan2(delta[1],delta[0])
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
                 keys["W"] = True
@@ -321,6 +274,7 @@ while is_running:
                 keys["S"] = True
             if event.key == pygame.K_d:
                 keys["D"] = True
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 keys["W"] = False
@@ -330,13 +284,12 @@ while is_running:
                 keys["S"] = False
             if event.key == pygame.K_d:
                 keys["D"] = False
+
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
+            if event.button == 1:  # Left mouse button
                 LMB = 1
+
         if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
+            if event.button == 1:  # Left mouse button
                 LMB = 0
     pygame.display.update()
-
-close_network()
-pygame.quit()
