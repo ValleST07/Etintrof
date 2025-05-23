@@ -99,7 +99,7 @@ def GameOverScreen():
     drawPlayer()
     CamView()
     text=font.render(f"Game Over Player {PLAYER} WON!", True, (50,255,50))
-    text2=font.render(f"Press N to play again or Q to Quit", True, (255,255,255))
+    text2=font.render(f"Press N for new Game or Q to Quit", True, (255,255,255))
     SCREEN.blit(text2, (220, 400))
     SCREEN.blit(text, (300, 350))
     pygame.display.update()
@@ -110,12 +110,12 @@ def GameOverScreen():
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    sendToServer.transmit(server_addr, "EXIT")
+                    sendToServer.transmit(server_addr, "E")
                     pygame.quit()
                     exit()
                 if event.key == pygame.K_n:
-                    print("AGAIN")
-                    sendToServer.transmit(server_addr, "AGAIN")
+                    print("New Game")
+                    sendToServer.transmit(server_addr, "N")
                     #reset server and play again
                     Map=[]
                     IsSpectating=False
@@ -211,6 +211,7 @@ def handleReceivedData():
     
     if (data[0]=='M'):
         Map=ast.literal_eval(data[1:])
+        print(f"Map RECEIVED")
         return
     elif (data[0]=='P'):
         PLAYER=int(data[1])
@@ -235,10 +236,8 @@ SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was ma
 SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
 is_running = True
-
-count=0
 while is_running:
-    count+=1
+    newGame=False
     if not IsSpectating:
         sendInputs()
     handleReceivedData()
@@ -249,15 +248,17 @@ while is_running:
         CamView()
         drawUI()
     
-    if PLAYER_HEALTH[PLAYER] == 0 and not IsSpectating:
+    if PLAYER_HEALTH[PLAYER] == 0 and not IsSpectating and not newGame:
         DeathScreen()
     
-    if IsSpectating:
+    if IsSpectating and not newGame:
         spectate()
     
     if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH)-1:
         GameOverScreen()
-
+        newGame=True
+        continue
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
