@@ -8,7 +8,7 @@ import math
 def get_wlan_ip():
     for interface, addrs in psutil.net_if_addrs().items():
         #if "wlan" in interface or "WLAN" in interface or "WI-FI" in interface:#WLAN
-        if "10" in interface:#HOTSPOT
+        if "2" in interface:#HOTSPOT
             for addr in addrs:
                 if addr.family == socket.AF_INET:  # IPv4 address
                     print(f"{interface}: {addr.address}")
@@ -305,14 +305,14 @@ def run_server(s,local_ip, local_addr):
         for addresse in player_addr:
             senden(addresse)
 
-if __name__ == "__main__":
-    # Server Setup
-    Reset(0,player_number=0)
-    local_ip = get_wlan_ip()
-    player_number = int(input("Anzahl der Spieler -> ") or "2")
-    #port = int(input("Port (default: 4444): ") or "4444")
-    port=4444
-    local_addr = (local_ip, port)
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(local_addr)
-        run_server(s,local_ip, local_addr)
+
+# Server Setup
+Reset(0,player_number=0)
+local_ip = get_wlan_ip()
+player_number = int(input("Anzahl der Spieler -> ") or "2")
+#port = int(input("Port (default: 4444): ") or "4444")
+port=4444
+local_addr = (local_ip, port)
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+    s.bind(local_addr)
+    run_server(s,local_ip, local_addr)
