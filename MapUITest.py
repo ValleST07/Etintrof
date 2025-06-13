@@ -270,7 +270,7 @@ while is_running:
     if IsSpectating and not newGame:
         spectate()
     
-    if PLAYER_HEALTH.count(0)>=len(PLAYER_HEALTH) and not newGame:
+    if PLAYER_HEALTH.count(0)+1>=len(PLAYER_HEALTH) and not newGame:
         GameOverScreen()
         continue
     
