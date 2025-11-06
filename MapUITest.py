@@ -5,8 +5,8 @@ import math
 import sendToServer
 import ast
 
-WINDOW_HEIGHT = 1000
-WINDOW_WIDTH = 1000
+WINDOW_HEIGHT = 800
+WINDOW_WIDTH = 800
 ZOOM_FACTOR=3
 
 MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
@@ -202,11 +202,18 @@ def drawProjectile():
         pygame.draw.circle(SURFACE, (90,90,90), BULLET_POSITIONS[i], projectilesize)
 
 def CamView():
-    cam_x=PLAYER_POSITIONS[PLAYER][0]-WINDOW_WIDTH/2
-    cam_y=PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
+    cam_x = PLAYER_POSITIONS[PLAYER][0] - WINDOW_WIDTH / 2
+    cam_y = PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
     camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    view_surface = SURFACE.subsurface(camera_view)
+
+    screen_w, screen_h = SCREEN.get_size()
+    offset_x = (screen_w - WINDOW_WIDTH) // 2
+    offset_y = (screen_h - WINDOW_HEIGHT) // 2
     SCREEN.fill((0, 0, 0))
-    SCREEN.blit(SURFACE, (0, 0), camera_view)
+    SCREEN.blit(view_surface, (offset_x, offset_y))
+
 
 def sendInputs():
     x = keys["D"] - keys["A"]
