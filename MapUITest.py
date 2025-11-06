@@ -5,8 +5,8 @@ import math
 import sendToServer
 import ast
 
-WINDOW_HEIGHT = 800
-WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 1000
+WINDOW_WIDTH = 1000
 ZOOM_FACTOR=3
 
 MAP_HEIGHT=WINDOW_HEIGHT*ZOOM_FACTOR
@@ -16,7 +16,7 @@ blocksizeX=int(MAP_WIDTH/50)
 blocksizeY=int(MAP_HEIGHT/50)
 
 playersize=blocksizeX/2-5
-playerbarrelsizeX=30
+playerbarrelsizeX=90
 playerbarrelsizeY=10
 
 projectilesize=playersize/2
@@ -249,7 +249,7 @@ def handleReceivedData():
 pygame.init()
 font=pygame.font.SysFont(None, 36)
 pygame.display.set_caption('Etintrof')
-SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) #SCREEN = was man sieht; teil der Map; mit zoom
+SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN) #SCREEN = was man sieht; teil der Map; mit zoom
 SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
 is_running = True
