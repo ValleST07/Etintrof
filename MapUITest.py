@@ -206,7 +206,7 @@ def CamView():
     cam_y=PLAYER_POSITIONS[PLAYER][1] - WINDOW_HEIGHT / 2
     camera_view = pygame.Rect(cam_x, cam_y, WINDOW_WIDTH, WINDOW_HEIGHT)
     SCREEN.fill((0, 0, 0))
-    SCREEN.blit(SURFACE, (560, 0), camera_view)
+    SCREEN.blit(SURFACE, (350, 0), camera_view)
 
 def sendInputs():
     x = keys["D"] - keys["A"]
@@ -280,7 +280,7 @@ while is_running:
         if event.type == pygame.MOUSEMOTION:
             mousex, mousey = event.pos
             # build a vector between player position and mouse position
-            delta = (mousex - WINDOW_WIDTH/2, mousey - WINDOW_HEIGHT/2)
+            delta = (mousex - 350+WINDOW_WIDTH/2, mousey - WINDOW_HEIGHT/2)
             PLAYER_ANGLES[PLAYER] =  math.atan2(delta[1],delta[0])
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
