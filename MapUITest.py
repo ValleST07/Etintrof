@@ -4,6 +4,7 @@ from pygame.time import delay
 import math
 import sendToServer
 import ast
+import os
 
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
@@ -256,6 +257,8 @@ def handleReceivedData():
 pygame.init()
 font=pygame.font.SysFont(None, 36)
 pygame.display.set_caption('Etintrof')
+os.environ['SDL_VIDEO_CENTERED'] = '1'
+
 SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN) #SCREEN = was man sieht; teil der Map; mit zoom
 SURFACE = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) #SURFACE = gesamte Map ohne Zoom
 
